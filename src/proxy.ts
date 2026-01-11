@@ -1,10 +1,8 @@
-import { createAuthClient } from "better-auth/react";
 import { NextRequest, NextResponse } from "next/server";
-
-const { useSession } = createAuthClient();
+import { getSessionCookie } from "better-auth/cookies";
 
 export async function proxy(req: NextRequest) {
-  const sessionCookie = req.cookies.get("better-auth.session");
+  const sessionCookie = getSessionCookie(req);
   const { pathname } = req.nextUrl;
 
   const protectedRoutes = ["/dashboard", "/interview"];
