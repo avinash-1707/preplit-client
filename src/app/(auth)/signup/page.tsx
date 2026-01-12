@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,9 @@ import { SignUpInput, signupSchema } from "@/schema/signupSchema";
 import { authClient } from "@/lib/auth-client";
 
 function SignUpPage() {
+  const [isVerificationSent, setIsVerificationSent] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
+
   const {
     register,
     handleSubmit,
@@ -28,7 +31,9 @@ function SignUpPage() {
     if (error) {
       toast.error(error?.message);
     } else {
-      toast.success("Account created successfully!");
+      setUserEmail(signupData.email);
+      setIsVerificationSent(true);
+      toast.success("Check your email for verification!");
     }
   };
 
@@ -51,6 +56,82 @@ function SignUpPage() {
     handleSubmit(onSubmit, (errors) => console.log("FORM ERRORS", errors))();
   };
 
+  // Verification success view
+  if (isVerificationSent) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="bg-zinc-800 rounded-lg shadow-2xl p-8 space-y-6 border border-zinc-700">
+            {/* Success Icon */}
+            <div className="text-center space-y-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-900/30 mb-2 border border-green-700">
+                <svg
+                  className="w-8 h-8 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76"
+                  />
+                </svg>
+              </div>
+
+              <h1 className="text-2xl font-semibold text-zinc-100">
+                Verify Your Email
+              </h1>
+
+              <div className="space-y-3 text-zinc-300">
+                <p className="text-base">We've sent a verification link to:</p>
+                <p className="text-lg font-medium text-zinc-100 bg-zinc-700/50 py-2 px-4 rounded border border-zinc-600">
+                  {userEmail}
+                </p>
+                <p className="text-sm text-zinc-400 leading-relaxed">
+                  Please check your inbox and click the verification link to
+                  activate your account. The link will expire in 24 hours.
+                </p>
+              </div>
+
+              {/* Additional Info */}
+              <div className="pt-4 space-y-3">
+                <div className="bg-zinc-700/30 border border-zinc-600 rounded-lg p-4 text-left">
+                  <p className="text-sm text-zinc-400">
+                    <span className="font-medium text-zinc-300">
+                      Didn't receive the email?
+                    </span>
+                    <br />
+                    Check your spam folder or wait a few minutes for the email
+                    to arrive.
+                  </p>
+                </div>
+
+                <Button
+                  onClick={() => setIsVerificationSent(false)}
+                  variant="outline"
+                  className="w-full h-10 bg-zinc-700 border-zinc-600 text-zinc-200 hover:bg-zinc-600 hover:border-zinc-500 transition-colors"
+                >
+                  Back to Sign Up
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <p className="text-center text-sm text-zinc-500 mt-6">
+            Need help?{" "}
+            <a href="/support" className="text-zinc-400 hover:text-zinc-300">
+              Contact Support
+            </a>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Original signup form view
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
       <div className="w-full max-w-md">
