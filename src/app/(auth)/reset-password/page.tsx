@@ -42,7 +42,7 @@ function PasswordResetPage() {
   const onEmailSubmit = async (data: EmailInput) => {
     const { error } = await authClient.requestPasswordReset({
       email: data.email,
-      redirectTo: "http://localhost:5000/reset-password",
+      redirectTo: "http://localhost:3000/reset-password",
     });
     if (error) {
       toast.error(error.message);
@@ -60,7 +60,7 @@ function PasswordResetPage() {
       toast.error(error.message);
     } else {
       toast.success("Password reset successfully!");
-      router;
+      router.push("/login");
     }
   };
 

@@ -11,9 +11,9 @@ export async function proxy(req: NextRequest) {
     pathname.startsWith(route)
   );
 
-  const isAuthPath = ["/login", "/signup"].some((route) => {
-    pathname.startsWith(route);
-  });
+  const isAuthPath = ["/login", "/signup"].some((route) =>
+    pathname.startsWith(route)
+  );
 
   if (isProtected && !sessionCookie) {
     const loginUrl = new URL("/login", req.url);
@@ -28,5 +28,5 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/interview/:path*"],
+  matcher: ["/((?!_next|favicon.ico).*)"],
 };
