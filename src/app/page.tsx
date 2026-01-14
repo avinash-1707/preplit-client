@@ -1,4 +1,5 @@
 import { UserButton } from "@/components/shared/UserButton";
+import Link from "next/link";
 
 // page.tsx
 export default function PreplitLanding() {
@@ -29,12 +30,12 @@ export default function PreplitLanding() {
               unpredictable.
             </p>
 
-            <a
-              href="#"
+            <Link
+              href="/dashboard"
               className="inline-block bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-8 py-4 rounded-lg text-lg transition-colors"
             >
               Start Simulating
-            </a>
+            </Link>
           </div>
         </div>
       </section>
