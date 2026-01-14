@@ -3,26 +3,9 @@ import { SessionUser } from "@/types/SessionUser";
 import React, { useEffect, useState } from "react";
 import { User, Mail, Calendar, Shield } from "lucide-react";
 import Image from "next/image";
+import { LoaderOne } from "@/components/ui/loader";
 
-function Profile() {
-  const [user, setUser] = useState<SessionUser | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const session = await authClient.getSession();
-        setUser(session.data?.user ?? null);
-      } catch (error) {
-        console.error("Failed to fetch user:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, []);
-
+function Profile({ user }: { user: SessionUser }) {
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
@@ -31,28 +14,8 @@ function Profile() {
     });
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center">
-        <div className="animate-pulse">
-          <div className="w-24 h-24 bg-zinc-200 dark:bg-zinc-800 rounded-full"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-zinc-600 dark:text-zinc-400">No user data found</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-12 px-4">
+    <div className="min-h-screen py-12 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Profile Header */}
         <div className="text-center mb-12">
