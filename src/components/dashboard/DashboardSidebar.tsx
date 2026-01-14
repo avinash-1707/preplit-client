@@ -1,4 +1,3 @@
-"use client";
 import React, { useState } from "react";
 import {
   MessageSquare,
@@ -6,10 +5,8 @@ import {
   MessageCircle,
   User,
   Settings,
-  LogOut,
   ChevronLeft,
   ChevronRight,
-  Command,
   Home,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -22,10 +19,19 @@ import {
 } from "@/components/ui/tooltip";
 import { ExitIcon } from "../svgs/ExitIcon";
 import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { DashboardSection } from "@/app/(dashboard)/dashboard/page";
 
-export default function DashboardSidebar() {
+export default function DashboardSidebar({ activeTab }: { activeTab: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const changeTab = (tab: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tab);
+
+    router.push(`/dashboard?${params.toString()}`);
+  };
   const [isOpen, setIsOpen] = useState(true);
   const handleLogout = async () => {
     await authClient.signOut({
@@ -38,10 +44,10 @@ export default function DashboardSidebar() {
   };
 
   const topOptions = [
-    { id: "dashboard", label: "Dashboard", icon: Home },
-    { id: "interview", label: "Interview", icon: MessageSquare },
+    { id: "main", label: "Dashboard", icon: Home },
+    { id: "interviews", label: "Interviews", icon: MessageSquare },
     { id: "stats", label: "Analytics", icon: BarChart3 },
-    { id: "feedback", label: "Feedback", icon: MessageCircle },
+    { id: "summary", label: "Summary", icon: MessageCircle },
   ];
 
   const bottomOptions = [
@@ -52,11 +58,12 @@ export default function DashboardSidebar() {
   const SidebarItem = ({ option }: { option: (typeof topOptions)[0] }) => {
     const content = (
       <Button
-        variant="ghost"
+        variant={option.id === activeTab ? "secondary" : "ghost"}
         className={cn(
           "w-full justify-start gap-4 px-3 py-6 transition-all duration-300 hover:bg-accent group",
           !isOpen && "justify-center px-0"
         )}
+        onClick={() => changeTab(option.id as DashboardSection)}
       >
         <option.icon className="h-5 w-5 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
         {isOpen && (
