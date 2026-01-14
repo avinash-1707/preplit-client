@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import GoogleIcon from "@/components/svgs/GoogleIcon";
 import GithubIcon from "@/components/svgs/GithubIcon";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 
 function LoginPage() {
   const {

@@ -1,12 +1,11 @@
 import { UserButton } from "@/components/shared/UserButton";
 import ThemeToggle from "@/components/ThemeToggle";
-import Link from "next/link";
 
 // page.tsx
 export default function PreplitLanding() {
   return (
     <div className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 min-h-screen transition-colors">
-      <nav className="sticky top-0 w-full flex justify-between items-center py-5 px-12 border-b border-zinc-200 dark:border-zinc-800 backdrop-blur-lg z-40 bg-white/80 dark:bg-zinc-950/80">
+      <nav className="fixed top-0 w-full flex justify-between items-center py-5 px-12 border-b border-zinc-200 dark:border-zinc-800 backdrop-blur-lg z-40 bg-white/80 dark:bg-zinc-950/80">
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
           preplit
         </h1>

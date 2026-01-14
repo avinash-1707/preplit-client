@@ -1,24 +1,19 @@
-"use client";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
-import { Button } from "@/components/ui/button";
-import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
-import React from "react";
+import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 
 function Dashboard() {
-  const router = useRouter();
-  const handleLogout = async () => {
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          router.push("/");
-        },
-      },
-    });
-  };
   return (
-    <div>
+    <div className="h-screen w-full flex flex-col">
+      {/* Navbar */}
       <DashboardNavbar />
+
+      {/* Main Area */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+        <DashboardSidebar />
+
+        {/* Content */}
+      </div>
     </div>
   );
 }

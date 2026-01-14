@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { SignUpInput, signupSchema } from "@/schema/signupSchema";
 import { authClient } from "@/lib/auth-client";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import GoogleIcon from "@/components/svgs/GoogleIcon";
 import GithubIcon from "@/components/svgs/GithubIcon";
 
