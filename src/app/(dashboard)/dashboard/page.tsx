@@ -1,4 +1,5 @@
 "use client";
+import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
@@ -17,8 +18,7 @@ function Dashboard() {
   };
   return (
     <div>
-      Dashboard
-      <Button onClick={handleLogout}>Logout</Button>
+      <DashboardNavbar />
     </div>
   );
 }
