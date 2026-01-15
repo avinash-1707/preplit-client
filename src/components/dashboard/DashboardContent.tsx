@@ -1,17 +1,34 @@
 import Profile from "./sections/Profile";
 import Settings from "./sections/Settings";
-import Main from "./sections/Main";
-import Analytics from "./sections/Analytics";
+import Overview from "./sections/Main";
 import Interviews from "./sections/Interviews";
-import Summary from "./sections/Summary";
 import { SessionUser } from "@/types/SessionUser";
 import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { LoaderOne } from "../ui/loader";
+import Insights from "./sections/Insights";
+import { DashboardSection } from "@/app/(dashboard)/dashboard/page";
 
-function DashboardContent({ activeSection }: { activeSection: string }) {
+const VALID_SECTIONS: DashboardSection[] = [
+  "overview",
+  "profile",
+  "settings",
+  "insights",
+  "interviews",
+];
+
+function DashboardContent({
+  activeSection,
+}: {
+  activeSection?: DashboardSection;
+}) {
   const [user, setUser] = useState<SessionUser | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const section: DashboardSection =
+    activeSection && VALID_SECTIONS.includes(activeSection)
+      ? activeSection
+      : "overview";
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -48,11 +65,10 @@ function DashboardContent({ activeSection }: { activeSection: string }) {
         {
           profile: <Profile user={user} />,
           settings: <Settings />,
-          main: <Main user={user} />,
-          stats: <Analytics />,
+          overview: <Overview user={user} />,
+          insights: <Insights />,
           interviews: <Interviews />,
-          summary: <Summary />,
-        }[activeSection]
+        }[section]
       }
     </main>
   );

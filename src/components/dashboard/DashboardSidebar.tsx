@@ -1,14 +1,4 @@
 import React, { useState } from "react";
-import {
-  MessageSquare,
-  BarChart3,
-  MessageCircle,
-  User,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  Home,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,16 +7,40 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ExitIcon } from "../svgs/ExitIcon";
+import { ExitIcon } from "../svgs/Exit";
 import { authClient } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DashboardSection } from "@/app/(dashboard)/dashboard/page";
+import {
+  AiIcon,
+  CollapseLeftIcon,
+  CollapseRightIcon,
+  InsightsIcon,
+  OverviewIcon,
+  UserIcon,
+} from "../svgs/DashboardIcons";
+import { SettingsIcon } from "../svgs/SettingsIcon";
 
-export default function DashboardSidebar({ activeTab }: { activeTab: string }) {
+const VALID_TABS: DashboardSection[] = [
+  "overview",
+  "interviews",
+  "insights",
+  "profile",
+  "settings",
+];
+
+export default function DashboardSidebar({
+  activeTab,
+}: {
+  activeTab?: DashboardSection;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const changeTab = (tab: string) => {
+  const resolvedTab: DashboardSection =
+    activeTab && VALID_TABS.includes(activeTab) ? activeTab : "overview";
+
+  const changeTab = (tab: DashboardSection) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", tab);
 
@@ -43,29 +57,36 @@ export default function DashboardSidebar({ activeTab }: { activeTab: string }) {
     });
   };
 
-  const topOptions = [
-    { id: "main", label: "Dashboard", icon: Home },
-    { id: "interviews", label: "Interviews", icon: MessageSquare },
-    { id: "stats", label: "Analytics", icon: BarChart3 },
-    { id: "summary", label: "Summary", icon: MessageCircle },
+  const topOptions: {
+    id: DashboardSection;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }[] = [
+    { id: "overview", label: "Overview", icon: OverviewIcon },
+    { id: "interviews", label: "Interviews", icon: AiIcon },
+    { id: "insights", label: "Insights", icon: InsightsIcon },
   ];
 
-  const bottomOptions = [
-    { id: "profile", label: "Profile", icon: User },
-    { id: "settings", label: "Settings", icon: Settings },
+  const bottomOptions: {
+    id: DashboardSection;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }[] = [
+    { id: "profile", label: "Profile", icon: UserIcon },
+    { id: "settings", label: "Settings", icon: SettingsIcon },
   ];
 
   const SidebarItem = ({ option }: { option: (typeof topOptions)[0] }) => {
     const content = (
       <Button
-        variant={option.id === activeTab ? "secondary" : "ghost"}
+        variant={option.id === resolvedTab ? "secondary" : "ghost"}
         className={cn(
           "w-full justify-start gap-4 px-3 py-6 transition-all duration-300 hover:bg-accent group",
           !isOpen && "justify-center px-0"
         )}
-        onClick={() => changeTab(option.id as DashboardSection)}
+        onClick={() => changeTab(option.id)}
       >
-        <option.icon className="h-5 w-5 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
+        <option.icon className="size-5 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
         {isOpen && (
           <span className="text-sm font-medium animate-in fade-in slide-in-from-left-2 duration-300">
             {option.label}
@@ -102,9 +123,9 @@ export default function DashboardSidebar({ activeTab }: { activeTab: string }) {
           className="absolute -right-3 top-7 h-6 w-6 rounded-full border bg-white dark:bg-zinc-950 shadow-sm hover:bg-zinc-950/10 hover:dark:bg-white/10  z-40"
         >
           {isOpen ? (
-            <ChevronLeft className="h-3 w-3" />
+            <CollapseLeftIcon className="h-4 w-4" />
           ) : (
-            <ChevronRight className="h-3 w-3" />
+            <CollapseRightIcon className="h-4 w-4" />
           )}
         </Button>
 

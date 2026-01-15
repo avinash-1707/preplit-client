@@ -4,9 +4,13 @@ import DashboardContent from "@/components/dashboard/DashboardContent";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
 
-export type DashboardSection = "main" | "profile" | "settings";
+export type DashboardSection =
+  | "overview"
+  | "interviews"
+  | "insights"
+  | "profile"
+  | "settings";
 
 export default function Dashboard() {
   const searchParams = useSearchParams();

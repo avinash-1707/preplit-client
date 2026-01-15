@@ -15,9 +15,9 @@ import { Link } from "next-view-transitions";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SessionUser } from "@/types/SessionUser";
-import { ExitIcon } from "../svgs/ExitIcon";
+import { ExitIcon } from "../svgs/Exit";
 import { SettingsIcon } from "../svgs/SettingsIcon";
-import { DashboardIcon } from "../svgs/DashboardIcon";
+import { DashboardIcon } from "../svgs/Dashboard";
 
 export function UserButton() {
   const router = useRouter();
