@@ -1,47 +1,115 @@
+"use client";
+
+import { useMicCameraStore } from "@/store/MicCameraStore";
+import { SessionUser } from "@/types/SessionUser";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { MicOffIcon } from "../svgs/InterviewControlIcons";
 
-export default function UserCamera() {
+export default function UserCamera({ user }: { user: SessionUser }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null); // for speaking detection (optional visual debug)
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const dataArrayRef = useRef<Uint8Array | null>(null);
 
+  const { stream, isCameraOn, isMicOn, start, stop, error } =
+    useMicCameraStore();
+
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  // Start camera+mic on mount
   useEffect(() => {
-    let stream: MediaStream;
+    start({ audio: true, video: true });
+    return () => stop();
+  }, [start, stop]);
 
-    async function startCamera() {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false,
-        });
+  // Attach stream to video
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
 
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } catch (err) {
-        setError("camera access denied or not available");
-      }
+  // Speaking detection using Web Audio API
+  useEffect(() => {
+    if (!stream || !isMicOn) {
+      setIsSpeaking(false);
+      return;
     }
 
-    startCamera();
+    const audioCtx = new AudioContext();
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+
+    const source = audioCtx.createMediaStreamSource(stream);
+    source.connect(analyser);
+
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    audioCtxRef.current = audioCtx;
+    analyserRef.current = analyser;
+    dataArrayRef.current = dataArray;
+
+    let rafId: number;
+    const threshold = 18; // tweak for sensitivity
+
+    const tick = () => {
+      analyser.getByteFrequencyData(dataArray);
+      const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+      setIsSpeaking(avg > threshold);
+      rafId = requestAnimationFrame(tick);
+    };
+
+    tick();
 
     return () => {
-      // cleanup when component unmounts
-      stream?.getTracks().forEach((track) => track.stop());
+      cancelAnimationFrame(rafId);
+      audioCtx.close();
     };
-  }, []);
-
-  if (error) {
-    return <p className="text-red-500">{error}</p>;
-  }
+  }, [stream, isMicOn]);
 
   return (
-    <p>Niggu</p>
-    // <video
-    //   ref={videoRef}
-    //   autoPlay
-    //   playsInline
-    //   muted
-    //   className="w-full h-full rounded-lg bg-black"
-    // />
+    <div
+      className={`relative w-full h-full rounded-lg overflow-hidden bg-black duration-200 ${
+        isSpeaking ? "border-4 border-neutral-400" : ""
+      }`}
+    >
+      {/* Video or Avatar */}
+      {isCameraOn ? (
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className="transform scale-x-[-1]"
+        />
+      ) : (
+        <div className="h-full flex items-center justify-center bg-zinc-100 dark:bg-zinc-900">
+          <Image
+            src={user.image ?? "/default-avatar.png"}
+            alt="default ass avatar"
+            height={100}
+            width={100}
+            className="rounded-full size-36"
+          />
+        </div>
+      )}
+
+      {/* Mic Off Indicator */}
+      {!isMicOn && (
+        <div className="absolute top-2 right-2 bg-white/50 dark:bg-black/50 rounded-full p-2">
+          <MicOffIcon className="size-5" />
+        </div>
+      )}
+
+      {/* Error overlay */}
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-white text-sm">
+          {error.message}
+        </div>
+      )}
+    </div>
   );
 }

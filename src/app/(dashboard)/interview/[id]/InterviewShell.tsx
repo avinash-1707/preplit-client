@@ -23,7 +23,7 @@ export default function InterviewShell({ sessionId }: InterviewShellProps) {
   }, []);
 
   return (
-    <div className="h-screen w-screen p-3 bg-neutral-950 text-white flex flex-col overflow-hidden">
+    <div className="h-screen w-screen p-3 flex flex-col overflow-hidden">
       <Header />
       {/* Main Interview Area */}
       <div className="flex flex-1 gap-3 overflow-hidden">
