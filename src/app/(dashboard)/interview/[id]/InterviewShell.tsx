@@ -5,6 +5,7 @@ import ControlBar from "@/components/interview/ControlBar";
 import LeftPanel from "@/components/interview/LeftPanel";
 import Header from "@/components/interview/Header";
 import CodePanel from "@/components/interview/CodePanel";
+import Captions from "@/components/interview/Captions";
 
 type InterviewShellProps = {
   sessionId: string;
@@ -37,6 +38,8 @@ export default function InterviewShell({ sessionId }: InterviewShellProps) {
           <CodePanel />
         </div>
       </div>
+
+      <Captions/>
 
       {/* Bottom Controls */}
       <div className="h-20">
