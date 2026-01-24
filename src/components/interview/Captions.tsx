@@ -3,8 +3,12 @@
 import React, { useEffect, useRef } from "react";
 import { useScribe } from "@elevenlabs/react";
 import fetchTokenFromServer from "@/utils/fetchTokenFromServer";
+import { useLLMSocket } from "@/hooks/useLLMSocket";
 
 function Captions() {
+    const lastPartialRef = useRef("");
+    const {sendTranscript} = useLLMSocket()
+
   const scribe = useScribe({
     modelId: "scribe_v2_realtime",
     onPartialTranscript: (d) => console.log("Partial:", d.text),
@@ -32,12 +36,23 @@ function Captions() {
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.code !== "Space") return;
-
-      e.preventDefault();
-      isTalkingRef.current = false;
-      scribe.disconnect();
-    };
+        if (e.code !== "Space") return;
+      
+        e.preventDefault();
+        isTalkingRef.current = false;
+      
+        setTimeout(() => {
+            const finalText = lastPartialRef.current.trim();
+          
+            if (finalText) {
+              sendTranscript(finalText);
+            }
+          
+            lastPartialRef.current = "";
+            scribe.disconnect();
+          }, 150);
+      };
+      
 
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
@@ -60,12 +75,7 @@ function Captions() {
           Live: {scribe.partialTranscript}
         </p>
       )}
-
-      <div className="bg-red-900/40 text-white">
-        {scribe.committedTranscripts.map((t) => (
-          <p key={t.id}>{t.text}</p>
-        ))}
-      </div>
+      
     </div>
   );
 }
