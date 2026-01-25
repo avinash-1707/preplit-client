@@ -16,7 +16,20 @@ export interface MediaDeviceOption {
   kind: MediaDeviceKind; // 'audioinput' | 'videoinput'
 }
 
-interface MicCameraState {
+type CaptionRole = "user" | "interviewer";
+
+interface CaptionsState {
+  captionsEnabled: boolean;
+  userCaptionsEnabled: boolean;
+  interviewerCaptionsEnabled: boolean;
+
+  toggleCaptions: () => void;
+  toggleUserCaptions: () => void;
+  toggleInterviewerCaptions: () => void;
+}
+
+
+interface MicCameraState extends CaptionsState {
   // Status
   hasPermission: boolean | null; // null = unknown
   isCameraOn: boolean;
@@ -36,14 +49,25 @@ interface MicCameraState {
   // Actions
   initPermissions: () => Promise<void>;
   enumerateDevices: () => Promise<void>;
+
+  /** Session-level */
   start: (opts?: { audio?: boolean; video?: boolean }) => Promise<void>;
   stop: () => void;
-  toggleMic: () => void;
+
+  /** Mic-level (PTT) */
+  startMic: () => Promise<void>;
+  stopMic: () => void;
+
+  /** Camera */
   toggleCamera: () => void;
+
+  /** Devices */
   setAudioInput: (deviceId: string) => Promise<void>;
   setVideoInput: (deviceId: string) => Promise<void>;
+
   clearError: () => void;
 }
+
 
 function mapMediaError(e: unknown): { code: MediaErrorCode; message: string } {
   if (!(e instanceof DOMException))
@@ -103,6 +127,10 @@ export const useMicCameraStore = create<MicCameraState>()(
     selectedVideoInputId: null,
 
     stream: null,
+
+    captionsEnabled: false,
+    userCaptionsEnabled: false,
+    interviewerCaptionsEnabled: false,
 
     clearError: () => set({ error: null }),
 
@@ -191,41 +219,56 @@ export const useMicCameraStore = create<MicCameraState>()(
       set({ stream: null, isMicOn: false, isCameraOn: false });
     },
 
-    toggleMic: async () => {
-      const { stream, isMicOn, selectedAudioInputId, isCameraOn } = get();
+    startMic: async () => {
+      const { stream, isMicOn, selectedAudioInputId } = get();
 
-      if (!isMicOn) {
-        try {
-          const audioStream = await getUserMediaSafe({
-            audio: selectedAudioInputId
-              ? { deviceId: { exact: selectedAudioInputId } }
-              : true,
-            video: false,
-          });
+      if (isMicOn) return;
 
-          set((state) => {
-            const videoTracks = state.stream?.getVideoTracks() ?? [];
-            const combined = new MediaStream([
-              ...audioStream.getAudioTracks(),
-              ...videoTracks,
-            ]);
-
-            return { stream: combined, isMicOn: true };
-          });
-        } catch (e) {
-          set({ error: mapMediaError(e) });
-        }
-      } else {
-        stream?.getAudioTracks().forEach((t) => t.stop());
+      try {
+        const audioStream = await getUserMediaSafe({
+          audio: selectedAudioInputId
+            ? { deviceId: { exact: selectedAudioInputId } }
+            : true,
+          video: false,
+        });
 
         set((state) => {
           const videoTracks = state.stream?.getVideoTracks() ?? [];
-          const newStream = new MediaStream(videoTracks);
 
-          return { stream: newStream, isMicOn: false };
+          const combined = new MediaStream([
+            ...audioStream.getAudioTracks(),
+            ...videoTracks,
+          ]);
+
+          return {
+            stream: combined,
+            isMicOn: true,
+            error: null,
+          };
         });
+      } catch (e) {
+        set({ error: mapMediaError(e) });
       }
     },
+
+    stopMic: () => {
+      const { stream, isMicOn } = get();
+
+      if (!isMicOn) return;
+
+      stream?.getAudioTracks().forEach((track) => track.stop());
+
+      set((state) => {
+        const videoTracks = state.stream?.getVideoTracks() ?? [];
+        const newStream = new MediaStream(videoTracks);
+
+        return {
+          stream: newStream,
+          isMicOn: false,
+        };
+      });
+    },
+
 
     toggleCamera: async () => {
       const { stream, isCameraOn, selectedVideoInputId, isMicOn } = get();
@@ -278,5 +321,35 @@ export const useMicCameraStore = create<MicCameraState>()(
       if (isMicOn || isCameraOn)
         await get().start({ audio: isMicOn, video: isCameraOn });
     },
+
+    toggleCaptions: () =>
+      set((state) => {
+        const enabled = !state.captionsEnabled;
+
+        return {
+          captionsEnabled: enabled,
+          userCaptionsEnabled: enabled,
+          interviewerCaptionsEnabled: enabled,
+        };
+      }),
+
+    toggleUserCaptions: () =>
+      set((state) => {
+        if (!state.captionsEnabled) return state;
+
+        return {
+          userCaptionsEnabled: !state.userCaptionsEnabled,
+        };
+      }),
+
+    toggleInterviewerCaptions: () =>
+      set((state) => {
+        if (!state.captionsEnabled) return state;
+
+        return {
+          interviewerCaptionsEnabled: !state.interviewerCaptionsEnabled,
+        };
+      }),
+
   }))
 );

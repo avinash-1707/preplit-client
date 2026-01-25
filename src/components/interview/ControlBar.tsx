@@ -15,9 +15,9 @@ function ControlBar() {
   const {
     isMicOn,
     isCameraOn,
-    toggleMic,
     toggleCamera,
-    start,
+    startMic,
+    stopMic,
     stop,
     isLoading,
   } = useMicCameraStore();
@@ -30,17 +30,32 @@ function ControlBar() {
       <div className="max-w-7xl mx-auto">
         <div className="relative flex items-center justify-center">
           <div className="flex items-center gap-2 sm:gap-4">
-            {/* Microphone */}
+            {/* Push-to-talk Microphone (PRESS & HOLD ONLY) */}
             <Button
-              onClick={toggleMic}
               disabled={isLoading}
-              className={`${CONTROL_BTN} ${
-                isMicOn
-                  ? "bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300"
-                  : "bg-red-500 hover:bg-red-600 text-white"
-              }`}
-              title={isMicOn ? "Turn off microphone" : "Turn on microphone"}
               size="icon"
+              title="Hold to talk"
+              className={`${CONTROL_BTN} select-none ${
+                isMicOn
+                  ? "bg-green-500 text-white"
+                  : "bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300"
+              }`}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                startMic(); // mic ON
+              }}
+              onMouseUp={(e) => {
+                e.preventDefault();
+                stopMic(); // mic OFF
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                startMic(); // mic ON
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                stopMic(); // mic OFF
+              }}
             >
               {isMicOn ? (
                 <MicOnIcon className="size-6.5" />

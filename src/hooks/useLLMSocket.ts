@@ -1,28 +1,26 @@
 "use client";
 
 import { getSocket } from "@/lib/getSocket";
-import { get } from "http";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function useLLMSocket() {
     const [answer, setAnswer] = useState("");
     const [isThinking, setIsThinking] = useState(false);
 
     const socket = getSocket();
+    const answerRef = useRef("");
 
     useEffect(() => {
-
         socket.on("connect", () => {
-            console.log("Socket.IO connected:", socket.id);
+            console.log("Socket connected:", socket.id);
         });
 
         socket.on("llm:token", ({ token }: { token: string }) => {
-            console.log(token)
-            setAnswer((prev) => prev + token);
+            answerRef.current += token;
+            setAnswer(answerRef.current);
         });
 
         socket.on("llm:done", () => {
-            console.log(answer)
             setIsThinking(false);
         });
 
@@ -32,25 +30,19 @@ export function useLLMSocket() {
         });
 
         return () => {
-            socket.off("connect")
+            socket.off("connect");
             socket.off("llm:token");
             socket.off("llm:done");
             socket.off("llm:error");
         };
-    }, []);
+    }, [socket]);
 
     const sendTranscript = (text: string) => {
-
+        answerRef.current = "";
         setAnswer("");
         setIsThinking(true);
 
-        console.log("socket trying to send message")
-
-        socket.emit("user:transcript", {
-            text,
-        });
-
-        console.log("Socket sent message successfully", text)
+        socket.emit("user:transcript", { text });
     };
 
     return {
