@@ -17,6 +17,7 @@ export function useLLMSocket() {
         });
 
         socket.on("llm:token", ({ token }: { token: string }) => {
+            console.log(token)
             setAnswer((prev) => prev + token);
         });
 

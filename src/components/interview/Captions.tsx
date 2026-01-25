@@ -14,6 +14,7 @@ function Captions() {
 
   const scribe = useScribe({
     modelId: "scribe_v2_realtime",
+    languageCode: "en",
 
     onPartialTranscript: (d) => {
       if (d.text && d.text.length >= lastPartialRef.current.length) {
