@@ -206,6 +206,8 @@ export const useMicCameraStore = create<MicCameraState>()(
           isCameraOn: !!opts.video,
           hasPermission: true,
         });
+
+        await get().enumerateDevices();
       } catch (e) {
         set({ error: mapMediaError(e), hasPermission: false });
       } finally {

@@ -8,12 +8,11 @@ import { MicOffIcon } from "../svgs/InterviewControlIcons";
 
 export default function UserCamera({ user }: { user: SessionUser }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null); // for speaking detection (optional visual debug)
   const audioCtxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const dataArrayRef = useRef<Uint8Array | null>(null);
 
-  const { stream, isCameraOn, isMicOn, start, stop, error } =
+  const { stream, isCameraOn, isMicOn, start, stop, error, enumerateDevices } =
     useMicCameraStore();
 
   const [isSpeaking, setIsSpeaking] = useState(false);

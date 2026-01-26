@@ -10,20 +10,44 @@ import {
   VideoOffIcon,
   VideoOnIcon,
 } from "../svgs/InterviewControlIcons";
+import { SplitButton } from "../shared/SplitButton";
+import { ChevronUpIcon } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 function ControlBar() {
   const {
     isMicOn,
     isCameraOn,
+    captionsEnabled,
     toggleCamera,
+    toggleCaptions,
     startMic,
     stopMic,
     stop,
     isLoading,
+    audioInputs,
+    videoInputs,
   } = useMicCameraStore();
 
-  const CONTROL_BTN =
-    "w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all";
+  const micDropDown = audioInputs.map((device) => ({
+    label: device.label,
+  }));
+
+  const videoDropDown = videoInputs.map((device) => ({
+    label: device.label,
+  }));
+
+  const captionDropDown = [
+    { label: "Interviewer Captions" },
+    { label: "Candidate Captions" },
+  ];
 
   return (
     <div className="fixed bottom-0 left-0 right-0 px-3 sm:px-6 py-3 sm:py-4 bg-white/70 dark:bg-neutral-950/70 backdrop-blur border-t">
@@ -31,75 +55,134 @@ function ControlBar() {
         <div className="relative flex items-center justify-center">
           <div className="flex items-center gap-2 sm:gap-4">
             {/* Push-to-talk Microphone (PRESS & HOLD ONLY) */}
-            <Button
-              disabled={isLoading}
-              size="icon"
-              title="Hold to talk"
-              className={`${CONTROL_BTN} select-none ${
-                isMicOn
-                  ? "bg-green-500 text-white"
-                  : "bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300"
-              }`}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                startMic(); // mic ON
-              }}
-              onMouseUp={(e) => {
-                e.preventDefault();
-                stopMic(); // mic OFF
-              }}
-              onTouchStart={(e) => {
-                e.preventDefault();
-                startMic(); // mic ON
-              }}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                stopMic(); // mic OFF
-              }}
-            >
-              {isMicOn ? (
-                <MicOnIcon className="size-6.5" />
-              ) : (
-                <MicOffIcon className="size-6.5" />
-              )}
-            </Button>
+            <div className="relative">
+              <div
+                className={`
+      hidden sm:flex items-center
+      h-11 sm:h-12
+      rounded-full
+      overflow-hidden
+      transition-all duration-300 ease-out
+      border backdrop-blur-sm
+      ${
+        isMicOn
+          ? "bg-linear-to-r from-green-400 to-green-500 text-white border-green-300/60 dark:border-green-600/60 shadow-lg shadow-green-200/50 dark:shadow-green-900/50 scale-105"
+          : "bg-linear-to-r from-neutral-50 to-neutral-100 dark:from-neutral-800 dark:to-neutral-900 text-neutral-700 dark:text-neutral-300 border-neutral-200/60 dark:border-neutral-700/60 hover:shadow-lg hover:shadow-neutral-200/50 dark:hover:shadow-neutral-900/50 hover:scale-105"
+      }
+    `}
+              >
+                {/* Left: Push to Talk Button */}
+                <button
+                  disabled={isLoading}
+                  title="Hold to talk"
+                  className="
+        h-full px-3.5
+        flex items-center justify-center
+        transition-all duration-200
+        active:scale-95
+        group
+        select-none
+      "
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    startMic(); // mic ON
+                  }}
+                  onMouseUp={(e) => {
+                    e.preventDefault();
+                    stopMic(); // mic OFF
+                  }}
+                  onTouchStart={(e) => {
+                    e.preventDefault();
+                    startMic(); // mic ON
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    stopMic(); // mic OFF
+                  }}
+                >
+                  {isMicOn ? (
+                    <MicOnIcon className="size-6 group-hover:scale-110 transition-transform duration-200" />
+                  ) : (
+                    <MicOffIcon className="size-6 group-hover:scale-110 transition-transform duration-200" />
+                  )}
+                </button>
+
+                {/* Divider */}
+                <div
+                  className={`w-px h-6 bg-linear-to-b from-transparent to-transparent ${
+                    isMicOn
+                      ? "via-green-300 dark:via-green-600"
+                      : "via-neutral-300 dark:via-neutral-600"
+                  }`}
+                />
+
+                {/* Right: Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className="
+                h-full pl-1.5 pr-2.5
+                flex items-center justify-center
+                transition-all duration-200
+                hover:text-neutral-900 dark:hover:text-white
+                active:scale-95
+                group
+              "
+                    >
+                      <ChevronUpIcon
+                        size={16}
+                        className="group-hover:translate-y-[-2px] transition-all duration-200 group-data-[state=open]:rotate-180"
+                      />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {micDropDown.map((item, index) => (
+                      <DropdownMenuItem>{item.label}</DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
 
             {/* Video */}
-            <Button
+            <SplitButton
+              isActive={!isCameraOn}
+              icon={isCameraOn ? VideoOnIcon : VideoOffIcon}
               onClick={toggleCamera}
-              disabled={isLoading}
-              className={`${CONTROL_BTN} ${
-                isCameraOn
-                  ? "bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300"
-                  : "bg-red-500 hover:bg-red-600 text-white"
-              }`}
-              title={isCameraOn ? "Turn off camera" : "Turn on camera"}
-              size="icon"
-            >
-              {isCameraOn ? (
-                <VideoOnIcon className="size-6" />
-              ) : (
-                <VideoOffIcon className="size-6" />
-              )}
-            </Button>
+              label="Video"
+              dropdownItems={videoDropDown}
+            />
 
             {/* Captions */}
-            <Button
-              className={`${CONTROL_BTN} bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hidden sm:flex`}
-              title="Captions"
-              size="icon"
-            >
-              <Captions className="size-6" />
-            </Button>
+            <SplitButton
+              isActive={captionsEnabled}
+              icon={Captions}
+              onClick={toggleCaptions}
+              label="Captions"
+              dropdownItems={captionDropDown}
+            />
 
             {/* End call */}
             <Button
               onClick={stop}
-              className={`${CONTROL_BTN} px-5 sm:px-6 bg-red-500 hover:bg-red-600 text-white`}
+              className="
+    h-11 sm:h-12 px-5 sm:px-6
+    flex items-center justify-center
+    rounded-full
+    overflow-hidden
+    bg-linear-to-r from-red-500 to-red-600
+    text-white
+    border border-red-400/60 dark:border-red-700/60
+    backdrop-blur-sm
+    hover:shadow-lg hover:shadow-red-200/50 dark:hover:shadow-red-900/50
+    hover:scale-105
+    active:scale-95
+    transition-all duration-300 ease-out
+    group
+  "
               title="Leave call"
-              size="icon"
             >
-              <DisconnectIcon className="size-6" />
+              <DisconnectIcon className="size-6 group-hover:scale-110 transition-transform duration-200" />
             </Button>
           </div>
         </div>
