@@ -6,12 +6,16 @@ import LeftPanel from "@/components/interview/LeftPanel";
 import Header from "@/components/interview/Header";
 import CodePanel from "@/components/interview/CodePanel";
 import Captions from "@/components/interview/Captions";
+import { useLLMStore } from "@/store/llmStore";
+import { useMicCameraStore } from "@/store/MicCameraStore";
 
 type InterviewShellProps = {
   sessionId: string;
 };
 
 export default function InterviewShell({ sessionId }: InterviewShellProps) {
+  const { captionsEnabled, userCaptionsEnabled } = useMicCameraStore();
+
   // 🔒 Navigation lock (basic version)
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -39,7 +43,7 @@ export default function InterviewShell({ sessionId }: InterviewShellProps) {
         </div>
       </div>
 
-      <Captions/>
+      {!userCaptionsEnabled && <Captions />}
 
       {/* Bottom Controls */}
       <div className="h-20">

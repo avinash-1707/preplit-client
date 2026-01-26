@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import { useScribe } from "@elevenlabs/react";
 import fetchTokenFromServer from "@/utils/fetchTokenFromServer";
 import { useLLMSocket } from "@/hooks/useLLMSocket";
+import CaptionTab from "./CaptionTab";
 
 function Captions() {
   const { sendTranscript } = useLLMSocket();
@@ -82,7 +83,7 @@ function Captions() {
   }, []);
 
   return (
-    <div>
+    <CaptionTab>
       <p
         className={`text-sm ${isTalkingRef.current ? "text-green-400" : "text-gray-400"}`}
       >
@@ -94,7 +95,7 @@ function Captions() {
           Live: {scribe.partialTranscript}
         </p>
       )}
-    </div>
+    </CaptionTab>
   );
 }
 

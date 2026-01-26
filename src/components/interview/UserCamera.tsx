@@ -19,7 +19,7 @@ export default function UserCamera({ user }: { user: SessionUser }) {
 
   // Start camera+mic on mount
   useEffect(() => {
-    start({ audio: true, video: true });
+    start({ audio: false, video: true });
     return () => stop();
   }, [start, stop]);
 

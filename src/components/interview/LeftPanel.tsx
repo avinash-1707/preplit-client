@@ -8,6 +8,7 @@ import { LoaderOne } from "../ui/loader";
 function LeftPanel() {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
