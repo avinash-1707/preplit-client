@@ -7,11 +7,6 @@ function Header() {
       <div className="relative flex items-center justify-center">
         {/* Centered title */}
         <div className="text-lg font-semibold">Header</div>
-
-        {/* Right aligned theme toggle */}
-        <div className="absolute right-0">
-          <ThemeToggle />
-        </div>
       </div>
     </header>
   );

@@ -78,13 +78,14 @@ export function UserButton() {
                 className="hover:bg-zinc-300 dark:hover:bg-zinc-700 cursor-pointer"
                 asChild
               >
-                <Link href={"/dashboard/settings"}>
+                <Link href={"/dashboard?tab=settings"}>
                   <SettingsIcon />
                   <span>Settings</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="hover:bg-zinc-300 dark:hover:bg-zinc-700 cursor-pointer"
+                variant="destructive"
+                className="cursor-pointer"
                 onClick={handleLogout}
               >
                 <ExitIcon />

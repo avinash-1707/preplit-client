@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 const Monaco = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
@@ -23,14 +24,21 @@ export default function CodeEditor({
   language = "javascript",
   onChange,
 }: Props) {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   return (
     <Monaco
       height="100%"
       language={language}
       value={value}
-      theme={theme === "dark" ? "vs-dark" : "vs"}
+      theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
       onChange={(v) => onChange?.(v ?? "")}
       options={{
         fontSize: 14,

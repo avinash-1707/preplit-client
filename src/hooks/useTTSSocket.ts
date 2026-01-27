@@ -1,7 +1,7 @@
 "use client";
 
 import { getSocket } from "@/lib/getSocket";
-import { playPCMChunk } from "@/lib/ttsPlayer";
+import { playMP3Chunk } from "@/lib/ttsPlayer";
 import { useEffect, useState } from "react";
 
 export function useTTSSocket() {
@@ -14,7 +14,7 @@ export function useTTSSocket() {
         });
 
         socket.on("tts:chunk", (audioChunk: ArrayBuffer) => {
-            playPCMChunk(audioChunk)
+            playMP3Chunk(audioChunk)
         });
 
         socket.on("tts:done", () => {

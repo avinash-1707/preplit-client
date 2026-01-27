@@ -19,8 +19,7 @@ function CaptionTab({
           mx-auto mt-3 w-full
           rounded-2xl px-5 py-3
           backdrop-blur-md
-          bg-white/5 border border-white/10
-          shadow-[0_8px_30px_rgba(0,0,0,0.4)]
+          bg-zinc-100 dark:bg-zinc-900
           transition-all duration-200
           ${className}
         `}
@@ -31,7 +30,9 @@ function CaptionTab({
         </div>
 
         {/* Caption text */}
-        <div className="text-sm leading-relaxed text-white/90">{children}</div>
+        <div className="h-full text-sm leading-relaxed text-white/90">
+          {children}
+        </div>
       </div>
     </div>
   );

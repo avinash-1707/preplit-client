@@ -16,14 +16,10 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { set } from "better-auth";
 
 function ControlBar() {
   const {
@@ -51,12 +47,12 @@ function ControlBar() {
   const captionDropDown = [
     {
       label: "Interviewer Captions",
-      onClick: () => toggleInterviewerCaptions,
+      onClick: () => toggleInterviewerCaptions(),
       enabled: interviewerCaptionsEnabled,
     },
     {
       label: "Candidate Captions",
-      onClick: () => toggleUserCaptions,
+      onClick: () => toggleUserCaptions(),
       enabled: userCaptionsEnabled,
     },
   ];
@@ -69,7 +65,7 @@ function ControlBar() {
             {/* Push-to-talk Microphone (PRESS & HOLD ONLY) */}
             <div className="relative">
               <div
-                className={`hidden sm:flex items-center h-11 sm:h-12 rounded-full overflow-hidden transition-all duration-300 ease-out border backdrop-blur-sm ${isMicOn ? "bg-linear-to-r from-green-400 to-green-500 text-white border-green-300/60 dark:border-green-600/60 shadow-lg shadow-green-200/50 dark:shadow-green-900/50 scale-105" : "bg-linear-to-r from-neutral-50 to-neutral-100 dark:from-neutral-800 dark:to-neutral-900 text-neutral-700 dark:text-neutral-300 border-neutral-200/60 dark:border-neutral-700/60 hover:shadow-lg hover:shadow-neutral-200/50 dark:hover:shadow-neutral-900/50 hover:scale-105"}`}
+                className={`hidden sm:flex items-center h-11 sm:h-12 rounded-full overflow-hidden transition-all duration-300 ease-out border backdrop-blur-sm ${isMicOn ? "bg-linear-to-r from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-300/60 dark:border-neutral-600/60 hover:shadow-lg hover:shadow-neutral-300 dark:hover:shadow-neutral-800/50 hover:scale-105" : "bg-linear-to-r from-neutral-50 to-neutral-100 dark:from-neutral-800 dark:to-neutral-900 text-neutral-700 dark:text-neutral-300 border-neutral-200/60 dark:border-neutral-700/60 hover:shadow-lg hover:shadow-neutral-200/50 dark:hover:shadow-neutral-900/50 hover:scale-105"}`}
               >
                 {/* Left: Push to Talk Button */}
                 <button
@@ -94,7 +90,7 @@ function ControlBar() {
                   }}
                 >
                   {isMicOn ? (
-                    <MicOnIcon className="size-6 group-hover:scale-110 transition-transform duration-200" />
+                    <MicOnIcon className="size-6 group-hover:scale-110 transition-transform duration-200 text-green-600" />
                   ) : (
                     <MicOffIcon className="size-6 group-hover:scale-110 transition-transform duration-200" />
                   )}
@@ -193,7 +189,7 @@ function ControlBar() {
 
             {/* Captions */}
             <div
-              className={`hidden sm:flex items-center h-11 sm:h-12 ${!captionsEnabled ? "bg-linear-to-r from-neutral-400 to-neutral-500 dark:from-neutral-500 dark:to-neutral-600" : "bg-linear-to-r from-neutral-50 to-neutral-100 dark:from-neutral-800 dark:to-neutral-900"} rounded-full overflow-hidden text-neutral-700 dark:text-neutral-300 hover:shadow-lg hover:shadow-neutral-200/50 dark:hover:shadow-neutral-900/50 hover:scale-105 transition-all duration-300 ease-out border border-neutral-200/60 dark:border-neutral-700/60 backdrop-blur-sm
+              className={`hidden sm:flex items-center h-11 sm:h-12 ${!captionsEnabled ? "bg-linear-to-r from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800" : "bg-linear-to-r from-neutral-50 to-neutral-100 dark:from-neutral-800 dark:to-neutral-900"} rounded-full overflow-hidden text-neutral-700 dark:text-neutral-300 hover:shadow-lg hover:shadow-neutral-200/50 dark:hover:shadow-neutral-900/50 hover:scale-105 transition-all duration-300 ease-out border border-neutral-200/60 dark:border-neutral-700/60 backdrop-blur-sm
         `}
             >
               {/* Left: Main Action */}
@@ -227,7 +223,7 @@ function ControlBar() {
                       {captionDropDown.map((item, index) => (
                         <DropdownMenuCheckboxItem
                           key={index}
-                          checked={item.enabled ?? false}
+                          checked={!item.enabled}
                           onCheckedChange={item.onClick}
                         >
                           {item.label}
