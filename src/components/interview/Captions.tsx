@@ -1,102 +1,31 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
-import { useScribe } from "@elevenlabs/react";
-import fetchTokenFromServer from "@/utils/fetchTokenFromServer";
-import { useLLMSocket } from "@/hooks/useLLMSocket";
+import { useTranscriptStore } from "@/store/transcriptStore";
+import { useEffect, useState } from "react";
 import CaptionTab from "./CaptionTab";
 
-function Captions() {
-  const { sendTranscript } = useLLMSocket();
-
-  const lastPartialRef = useRef("");
-  const committedRef = useRef("");
-  const isTalkingRef = useRef(false);
-
-  const scribe = useScribe({
-    modelId: "scribe_v2_realtime",
-    languageCode: "en",
-
-    onPartialTranscript: (d) => {
-      if (d.text && d.text.length >= lastPartialRef.current.length) {
-        lastPartialRef.current = d.text;
-      }
-    },
-
-    onCommittedTranscript: (d) => {
-      committedRef.current = d.text;
-    },
-  });
+export default function Captions() {
+  const { partial, final } = useTranscriptStore();
+  const [visibleText, setVisibleText] = useState("");
 
   useEffect(() => {
-    const handleKeyDown = async (e: KeyboardEvent) => {
-      if (e.code !== "Space") return;
-      if (isTalkingRef.current || scribe.isConnected) return;
+    if (partial) {
+      setVisibleText(partial);
+      return;
+    }
 
-      e.preventDefault();
-      isTalkingRef.current = true;
+    if (final) {
+      setVisibleText(final);
+      const t = setTimeout(() => setVisibleText(""), 2500);
+      return () => clearTimeout(t);
+    }
+  }, [partial, final]);
 
-      const token = await fetchTokenFromServer();
-      await scribe.connect({
-        token,
-        microphone: {
-          echoCancellation: true,
-          noiseSuppression: true,
-        },
-      });
-    };
-
-    const handleKeyUp = async (e: KeyboardEvent) => {
-      if (e.code !== "Space") return;
-
-      e.preventDefault();
-      isTalkingRef.current = false;
-
-      //Force finalization
-      await scribe.commit();
-
-      // 3️⃣ allow events to arrive
-      setTimeout(() => {
-        const finalText =
-          committedRef.current.trim() || lastPartialRef.current.trim();
-
-        console.log("Final transcript:", finalText);
-
-        if (finalText) {
-          sendTranscript(finalText);
-        }
-
-        committedRef.current = "";
-        lastPartialRef.current = "";
-        scribe.disconnect();
-      }, 200);
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
-      scribe.disconnect();
-    };
-  }, []);
+  if (!visibleText) return null;
 
   return (
     <CaptionTab>
-      <p
-        className={`text-sm ${isTalkingRef.current ? "text-green-400" : "text-gray-400"}`}
-      >
-        Hold <kbd>Space</kbd> to speak
-      </p>
-
-      {scribe.partialTranscript && (
-        <p className="bg-green-900/40 text-white">
-          Live: {scribe.partialTranscript}
-        </p>
-      )}
+      <p className="bg-green-900/40 text-white text-sm">{visibleText}</p>
     </CaptionTab>
   );
 }
-
-export default Captions;
