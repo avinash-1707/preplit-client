@@ -1,12 +1,27 @@
 import Image from "next/image";
-import React from "react";
-import CaptionTab from "./CaptionTab";
+import React, { useEffect, useRef } from "react";
 import { useLLMStore } from "@/store/llmStore";
 import { useMicCameraStore } from "@/store/MicCameraStore";
+import { resetSpeech, speakRemaining, speakStream } from "@/utils/speakStream";
 
 function AIInterviewer() {
   const { answer, isThinking } = useLLMStore();
   const { interviewerCaptionsEnabled } = useMicCameraStore();
+
+  useEffect(() => {
+    if (answer) {
+      speakStream(answer);
+    }
+  }, [answer]);
+
+  useEffect(() => {
+    if (isThinking) {
+      resetSpeech();
+    } else if (answer) {
+      speakRemaining(answer);
+    }
+  }, [isThinking, answer]);
+
   return (
     <div className="h-full w-full">
       {interviewerCaptionsEnabled ? (
