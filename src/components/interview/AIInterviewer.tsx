@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { useLLMStore } from "@/store/llmStore";
 import { useMicCameraStore } from "@/store/MicCameraStore";
 import { resetSpeech, speakRemaining, speakStream } from "@/utils/speakStream";

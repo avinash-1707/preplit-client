@@ -1,9 +1,7 @@
-import { authClient } from "@/lib/auth-client";
 import { SessionUser } from "@/types/SessionUser";
-import React, { useEffect, useState } from "react";
-import { User, Mail, Calendar, Shield } from "lucide-react";
+import React from "react";
+import { Mail, Calendar, Shield } from "lucide-react";
 import Image from "next/image";
-import { LoaderOne } from "@/components/ui/loader";
 
 function Profile({ user }: { user: SessionUser }) {
   const formatDate = (date: Date) => {

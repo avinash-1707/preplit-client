@@ -116,6 +116,7 @@ export default function UserCamera({ user }: { user: SessionUser }) {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- effect intentionally re-runs only on isMicOn; commitFinal/scribe/sendTranscript are stable refs/handlers and adding them would re-init the recognition stream, changing runtime behavior
   }, [isMicOn]);
 
   /* ---------------- speaking detection ---------------- */

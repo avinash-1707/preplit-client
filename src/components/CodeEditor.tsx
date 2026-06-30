@@ -28,6 +28,7 @@ export default function CodeEditor({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- mount gate to avoid SSR/client hydration mismatch; intentional one-time set on mount
     setMounted(true);
   }, []);
 

@@ -26,7 +26,7 @@ export default function PreplitLanding() {
             </div>
 
             <h1 className="text-6xl font-bold leading-tight mb-6 text-zinc-900 dark:text-zinc-100">
-              Practice coding interviews the way they're{" "}
+              Practice coding interviews the way they&apos;re{" "}
               <span className="text-indigo-600 dark:text-indigo-400">
                 actually conducted
               </span>
@@ -34,7 +34,7 @@ export default function PreplitLanding() {
 
             <p className="text-xl text-zinc-600 dark:text-zinc-400 mb-10 leading-relaxed">
               Preplit helps developers practice coding interviews the way
-              they're actually conducted — timed, conversational, and
+              they&apos;re actually conducted — timed, conversational, and
               unpredictable.
             </p>
 
@@ -65,7 +65,7 @@ export default function PreplitLanding() {
               </h3>
               <p className="text-zinc-600 dark:text-zinc-400">
                 You know the solution but panic under a 45-minute countdown.
-                Practicing untimed doesn't prepare you for real pressure.
+                Practicing untimed doesn&apos;t prepare you for real pressure.
               </p>
             </div>
 
@@ -74,7 +74,7 @@ export default function PreplitLanding() {
                 Requirements change mid-interview
               </h3>
               <p className="text-zinc-600 dark:text-zinc-400">
-                Static problem statements don't teach you how to adapt when the
+                Static problem statements don&apos;t teach you how to adapt when the
                 interviewer adds constraints or asks for optimization.
               </p>
             </div>
@@ -119,8 +119,8 @@ export default function PreplitLanding() {
                   Just like a real interviewer would describe it verbally.
                 </p>
                 <div className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 font-mono text-sm text-zinc-700 dark:text-zinc-300">
-                  <span className="text-zinc-500">interviewer:</span> "Design a
-                  function that finds duplicate entries in a dataset..."
+                  <span className="text-zinc-500">interviewer:</span> &quot;Design a
+                  function that finds duplicate entries in a dataset...&quot;
                 </div>
               </div>
             </div>
@@ -145,11 +145,11 @@ export default function PreplitLanding() {
                 </p>
                 <div className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 font-mono text-sm">
                   <div className="text-emerald-600 dark:text-emerald-400 mb-2">
-                    you: "Should I optimize for space or time complexity?"
+                    you: &quot;Should I optimize for space or time complexity?&quot;
                   </div>
                   <div className="text-zinc-600 dark:text-zinc-400">
-                    <span className="text-zinc-500">interviewer:</span> "Time is
-                    more critical here."
+                    <span className="text-zinc-500">interviewer:</span> &quot;Time is
+                    more critical here.&quot;
                   </div>
                 </div>
               </div>
@@ -170,15 +170,15 @@ export default function PreplitLanding() {
                   Start with brute force, explain your approach
                 </h3>
                 <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-                  You're expected to think aloud. Outline your strategy before
+                  You&apos;re expected to think aloud. Outline your strategy before
                   coding. Show your thought process, not just your final answer.
                 </p>
                 <div className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 font-mono text-sm text-zinc-700 dark:text-zinc-300">
                   <div className="text-amber-600 dark:text-amber-400 mb-1">
-                    // First approach: nested loops - O(n²)
+                    {"// First approach: nested loops - O(n²)"}
                   </div>
                   <div className="text-zinc-500">
-                    // I'll start simple, then optimize...
+                    {"// I'll start simple, then optimize..."}
                   </div>
                 </div>
               </div>
@@ -205,12 +205,12 @@ export default function PreplitLanding() {
                 </p>
                 <div className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 font-mono text-sm">
                   <div className="text-zinc-600 dark:text-zinc-400 mb-2">
-                    <span className="text-zinc-500">interviewer:</span> "What if
-                    the dataset doesn't fit in memory?"
+                    <span className="text-zinc-500">interviewer:</span> &quot;What if
+                    the dataset doesn&apos;t fit in memory?&quot;
                   </div>
                   <div className="text-emerald-600 dark:text-emerald-400">
-                    you: "I'd switch to a streaming approach with external
-                    sorting..."
+                    you: &quot;I&apos;d switch to a streaming approach with external
+                    sorting...&quot;
                   </div>
                 </div>
               </div>
@@ -256,7 +256,7 @@ export default function PreplitLanding() {
             <div className="space-y-8">
               <div className="border-l-4 border-indigo-600 pl-6">
                 <h3 className="text-xl font-semibold mb-2 text-zinc-900 dark:text-zinc-100">
-                  Problems aren't static. Neither are interviews.
+                  Problems aren&apos;t static. Neither are interviews.
                 </h3>
                 <p className="text-zinc-600 dark:text-zinc-400">
                   Requirements evolve as you code. Preplit mirrors this by
@@ -267,7 +267,7 @@ export default function PreplitLanding() {
 
               <div className="border-l-4 border-indigo-600 pl-6">
                 <h3 className="text-xl font-semibold mb-2 text-zinc-900 dark:text-zinc-100">
-                  Time pressure isn't optional.
+                  Time pressure isn&apos;t optional.
                 </h3>
                 <p className="text-zinc-600 dark:text-zinc-400">
                   Every session is timed. You learn when to optimize, when to
@@ -292,7 +292,7 @@ export default function PreplitLanding() {
                   Think like a hireable engineer.
                 </h3>
                 <p className="text-zinc-600 dark:text-zinc-400">
-                  Solving faster doesn't make you hireable. Structured thinking,
+                  Solving faster doesn&apos;t make you hireable. Structured thinking,
                   adaptability, and clear communication do.
                 </p>
               </div>
@@ -311,7 +311,7 @@ export default function PreplitLanding() {
           <div className="grid md:grid-cols-2 gap-12 max-w-4xl mx-auto">
             <div>
               <h3 className="text-2xl font-semibold mb-6 text-zinc-900 dark:text-zinc-100">
-                You're ready if you:
+                You&apos;re ready if you:
               </h3>
               <ul className="space-y-4 text-zinc-600 dark:text-zinc-400">
                 <li className="flex items-start gap-3">
@@ -345,7 +345,7 @@ export default function PreplitLanding() {
                     ✓
                   </span>
                   <span>
-                    Have been rejected despite "getting the logic right"
+                    Have been rejected despite &quot;getting the logic right&quot;
                   </span>
                 </li>
               </ul>
@@ -399,13 +399,13 @@ export default function PreplitLanding() {
         <div className="container mx-auto px-6 max-w-6xl">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-4xl font-bold mb-8 text-zinc-900 dark:text-zinc-100">
-              After consistent practice, you'll stop treating interviews like
+              After consistent practice, you&apos;ll stop treating interviews like
               exams
             </h2>
             <p className="text-xl text-zinc-600 dark:text-zinc-400 mb-12">
-              You'll recognize interview patterns. You'll know when to clarify,
-              when to optimize, and how to recover from mistakes. You'll think
-              and communicate like someone who's done this before.
+              You&apos;ll recognize interview patterns. You&apos;ll know when to clarify,
+              when to optimize, and how to recover from mistakes. You&apos;ll think
+              and communicate like someone who&apos;s done this before.
             </p>
 
             <div className="bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl p-8 text-left mb-12">
@@ -471,7 +471,7 @@ export default function PreplitLanding() {
               preplit
             </div>
             <div className="text-zinc-500 text-sm">
-              Built by engineers who've given interviews, for engineers
+              Built by engineers who&apos;ve given interviews, for engineers
               preparing for them.
             </div>
           </div>

@@ -88,7 +88,7 @@ function SignUpPage() {
               </h1>
 
               <div className="space-y-3 text-zinc-300">
-                <p className="text-base">We've sent a verification link to:</p>
+                <p className="text-base">We&apos;ve sent a verification link to:</p>
                 <p className="text-lg font-medium text-zinc-100 bg-zinc-700/50 py-2 px-4 rounded border border-zinc-600">
                   {userEmail}
                 </p>
@@ -103,7 +103,7 @@ function SignUpPage() {
                 <div className="bg-zinc-700/30 border border-zinc-600 rounded-lg p-4 text-left">
                   <p className="text-sm text-zinc-400">
                     <span className="font-medium text-zinc-300">
-                      Didn't receive the email?
+                      Didn&apos;t receive the email?
                     </span>
                     <br />
                     Check your spam folder or wait a few minutes for the email

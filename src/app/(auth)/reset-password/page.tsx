@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { Suspense, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 
-function PasswordResetPage() {
+function ResetPasswordContent() {
   const searchParams = useSearchParams();
   const token: string | undefined = searchParams.get("token") ?? undefined;
   const router = useRouter();
@@ -355,4 +355,11 @@ function PasswordResetPage() {
   );
 }
 
-export default PasswordResetPage;
+// useSearchParams() requires a Suspense boundary for static prerendering.
+export default function PasswordResetPage() {
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordContent />
+    </Suspense>
+  );
+}

@@ -16,8 +16,6 @@ export interface MediaDeviceOption {
   kind: MediaDeviceKind; // 'audioinput' | 'videoinput'
 }
 
-type CaptionRole = "user" | "interviewer";
-
 interface CaptionsState {
   captionsEnabled: boolean;
   userCaptionsEnabled: boolean;
@@ -222,7 +220,7 @@ export const useMicCameraStore = create<MicCameraState>()(
     },
 
     startMic: async () => {
-      const { stream, isMicOn, selectedAudioInputId } = get();
+      const { isMicOn, selectedAudioInputId } = get();
 
       if (isMicOn) return;
 
@@ -273,7 +271,7 @@ export const useMicCameraStore = create<MicCameraState>()(
 
 
     toggleCamera: async () => {
-      const { stream, isCameraOn, selectedVideoInputId, isMicOn } = get();
+      const { stream, isCameraOn, selectedVideoInputId } = get();
 
       if (!isCameraOn) {
         // TURN ON → request a fresh video track

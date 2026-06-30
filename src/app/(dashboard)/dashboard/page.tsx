@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import DashboardContent from "@/components/dashboard/DashboardContent";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
@@ -12,7 +13,7 @@ export type DashboardSection =
   | "profile"
   | "settings";
 
-export default function Dashboard() {
+function DashboardView() {
   const searchParams = useSearchParams();
 
   const activeTab = (searchParams.get("tab") as DashboardSection) ?? "main";
@@ -30,5 +31,14 @@ export default function Dashboard() {
         <DashboardContent activeSection={activeTab} />
       </div>
     </div>
+  );
+}
+
+// useSearchParams() requires a Suspense boundary for static prerendering.
+export default function Dashboard() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardView />
+    </Suspense>
   );
 }

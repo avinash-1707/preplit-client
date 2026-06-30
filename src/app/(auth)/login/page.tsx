@@ -268,7 +268,7 @@ function LoginPage() {
 
             {/* Sign Up Link */}
             <p className="text-center text-sm text-zinc-400">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <a
                 href="/signup"
                 className="text-zinc-300 hover:text-zinc-200 font-medium transition-colors"

@@ -10,6 +10,7 @@ export default function Captions() {
 
   useEffect(() => {
     if (partial) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing local visible caption text to external transcript store updates; refactor tracked separately
       setVisibleText(partial);
       return;
     }
