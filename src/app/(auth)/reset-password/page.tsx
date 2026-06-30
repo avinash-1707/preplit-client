@@ -42,7 +42,9 @@ function PasswordResetPage() {
   const onEmailSubmit = async (data: EmailInput) => {
     const { error } = await authClient.requestPasswordReset({
       email: data.email,
-      redirectTo: "http://localhost:3000/reset-password",
+      // Absolute URL for the email link; derive from the current origin so it
+      // works in any environment instead of a hardcoded localhost.
+      redirectTo: `${window.location.origin}/reset-password`,
     });
     if (error) {
       toast.error(error.message);

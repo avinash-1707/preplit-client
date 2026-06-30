@@ -44,7 +44,7 @@ function LoginPage() {
   const handleGoogleLogin = async () => {
     const { error } = await authClient.signIn.social({
       provider: "google",
-      callbackURL: "http://localhost:3000/dashboard",
+      callbackURL: "/dashboard",
     });
     if (error) toast.error(error.message);
   };
@@ -52,7 +52,7 @@ function LoginPage() {
   const handleGithubLogin = async () => {
     const { error } = await authClient.signIn.social({
       provider: "github",
-      callbackURL: "http://localhost:3000/dashboard",
+      callbackURL: "/dashboard",
     });
     if (error) toast.error(error.message);
   };
