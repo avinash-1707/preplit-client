@@ -3,6 +3,7 @@ import { Space_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 import { ViewTransitions } from "next-view-transitions";
 import ReactLenis from "lenis/react";
 
@@ -29,8 +30,10 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              {children}
-              <Toaster />
+              <QueryProvider>
+                {children}
+                <Toaster />
+              </QueryProvider>
             </ThemeProvider>
           </ReactLenis>
         </body>

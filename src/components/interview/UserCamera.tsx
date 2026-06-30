@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { MicOffIcon } from "../svgs/InterviewControlIcons";
 
 import { useScribe } from "@elevenlabs/react";
-import fetchTokenFromServer from "@/utils/fetchTokenFromServer";
+import { useScribeTokenFetcher } from "@/lib/queries/scribe";
 import { useTranscriptStore } from "@/store/transcriptStore";
 import { useLLMSocket } from "@/hooks/useLLMSocket";
 
@@ -25,6 +25,7 @@ export default function UserCamera({ user }: { user: SessionUser }) {
 
   const { setPartial, commitFinal } = useTranscriptStore();
   const { sendTranscript } = useLLMSocket();
+  const fetchScribeToken = useScribeTokenFetcher();
 
   /* ---------------- ElevenLabs STT ---------------- */
   const scribe = useScribe({
@@ -101,7 +102,7 @@ export default function UserCamera({ user }: { user: SessionUser }) {
     let cancelled = false;
 
     (async () => {
-      const token = await fetchTokenFromServer();
+      const { token } = await fetchScribeToken();
       if (cancelled) return;
 
       await scribe.connect({
