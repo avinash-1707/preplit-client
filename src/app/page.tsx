@@ -1,476 +1,987 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { Link } from "next-view-transitions";
 import { UserButton } from "@/components/shared/UserButton";
 import ThemeToggle from "@/components/ThemeToggle";
+import { HeroEditorSVG } from "@/components/landing/HeroEditorSVG";
+import { ScorecardSVG } from "@/components/landing/ScorecardSVG";
+import { ConversationSVG } from "@/components/landing/ConversationSVG";
+import {
+  VoiceIcon,
+  CodeIcon,
+  EvalIcon,
+  SystemDesignIcon,
+  DSAIcon,
+  TimerIcon,
+} from "@/components/landing/FeatureIcons";
 
-// page.tsx
-export default function PreplitLanding() {
+// ---------------------------------------------------------------------------
+// Cursor blink hook — respects prefers-reduced-motion
+// ---------------------------------------------------------------------------
+function useCursorBlink() {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mq.matches) return;
+    const id = setInterval(() => setVisible((v) => !v), 530);
+    return () => clearInterval(id);
+  }, []);
+  return visible;
+}
+
+// ---------------------------------------------------------------------------
+// Scroll reveal — returns { ref, revealed } where revealed is useState-driven.
+// The ref is attached to a DOM element; revealed flips to true via
+// IntersectionObserver callback (never synchronously in the effect body).
+// Respects prefers-reduced-motion by starting revealed=true when motion
+// is reduced (initialised via useState lazy initialiser, not in the effect).
+// ---------------------------------------------------------------------------
+function useReveal(threshold = 0.15) {
+  const divRef = useRef<HTMLDivElement>(null);
+  const [revealed, setRevealed] = useState<boolean>(() => {
+    // Initialise to true on the server and for users who prefer reduced motion
+    // (window is undefined on server, so this is safe — it will be rechecked
+    // client-side in the effect below).
+    if (typeof window === "undefined") return true;
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  });
+
+  useEffect(() => {
+    // Already revealed (reduced-motion, SSR, or previously intersected)
+    if (revealed) return;
+    const el = divRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setRevealed(true);
+          obs.disconnect();
+        }
+      },
+      { threshold }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [revealed, threshold]);
+
+  return { ref: divRef, revealed };
+}
+
+// ---------------------------------------------------------------------------
+// Animated stat counter
+// ---------------------------------------------------------------------------
+function AnimatedStat({
+  value,
+  suffix = "",
+  label,
+}: {
+  value: number;
+  suffix?: string;
+  label: string;
+}) {
+  const [display, setDisplay] = useState(0);
+  const { ref, revealed } = useReveal(0.5);
+
+  useEffect(() => {
+    if (!revealed) return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const duration = mq.matches ? 0 : 1200;
+    let start: number | null = null;
+    const step = (ts: number) => {
+      if (!start) start = ts;
+      const progress = duration === 0 ? 1 : Math.min((ts - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.floor(eased * value));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [revealed, value]);
+
   return (
-    <div className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 min-h-screen transition-colors">
-      <nav className="fixed top-0 w-full flex justify-between items-center py-5 px-12 border-b border-zinc-200 dark:border-zinc-800 backdrop-blur-lg z-40 bg-white/80 dark:bg-zinc-950/80">
-        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-          preplit
-        </h1>
-        <div className="flex items-center justify-center gap-8">
+    <div ref={ref} className="flex flex-col items-center gap-1">
+      <span className="font-mono text-4xl font-bold text-[#e4e4e4] tabular-nums">
+        {display}
+        {suffix}
+      </span>
+      <span className="font-mono text-xs text-[#555] uppercase tracking-widest">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// How it works — step
+// ---------------------------------------------------------------------------
+function Step({
+  number,
+  icon,
+  title,
+  description,
+  timestamp,
+  detail,
+  last = false,
+}: {
+  number: number;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  timestamp: string;
+  detail: React.ReactNode;
+  last?: boolean;
+}) {
+  const { ref, revealed } = useReveal(0.1);
+  return (
+    <div
+      ref={ref}
+      className="grid grid-cols-[48px_1fr] gap-6 relative"
+      style={{
+        opacity: revealed ? 1 : 0,
+        transform: revealed ? "translateY(0)" : "translateY(18px)",
+        transition: "opacity 0.5s ease, transform 0.5s ease",
+        transitionDelay: `${number * 80}ms`,
+      }}
+    >
+      <div className="flex flex-col items-center">
+        <div
+          className="w-10 h-10 shrink-0 border border-[#2a2a2a] flex items-center justify-center font-mono text-xs font-bold text-[#4afa8a]"
+          style={{ backgroundColor: "#111111" }}
+        >
+          {String(number).padStart(2, "0")}
+        </div>
+        {!last && (
+          <div
+            className="w-px flex-1 mt-2 bg-[#1e1e1e]"
+            style={{ minHeight: "40px" }}
+          />
+        )}
+      </div>
+      <div className="pb-10">
+        <div className="font-mono text-[10px] text-[#4afa8a] mb-1 tracking-widest">
+          {timestamp}
+        </div>
+        <div className="flex items-center gap-3 mb-2">
+          <span className="text-[#555] w-5 h-5">{icon}</span>
+          <h3 className="font-mono text-lg text-[#e4e4e4]">{title}</h3>
+        </div>
+        <p className="font-mono text-sm text-[#666] leading-relaxed mb-4">
+          {description}
+        </p>
+        {detail}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Feature card
+// ---------------------------------------------------------------------------
+function FeatureCard({
+  icon,
+  title,
+  description,
+  accent,
+  delay = 0,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  accent: string;
+  delay?: number;
+}) {
+  const { ref, revealed } = useReveal(0.1);
+  return (
+    <div
+      ref={ref}
+      className="border border-[#1e1e1e] p-6 group relative overflow-hidden"
+      style={{
+        backgroundColor: "#0e0e0e",
+        opacity: revealed ? 1 : 0,
+        transform: revealed ? "translateY(0)" : "translateY(14px)",
+        transition:
+          "opacity 0.45s ease, transform 0.45s ease, border-color 0.3s ease",
+        transitionDelay: `${delay}ms`,
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLElement).style.borderColor = accent;
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLElement).style.borderColor = "#1e1e1e";
+      }}
+    >
+      <div
+        className="absolute top-0 left-0 w-8 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        style={{ backgroundColor: accent }}
+      />
+      <div
+        className="absolute top-0 left-0 h-8 w-px opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        style={{ backgroundColor: accent }}
+      />
+      <div className="w-8 h-8 mb-4" style={{ color: accent }}>
+        {icon}
+      </div>
+      <h3 className="font-mono text-sm font-bold text-[#e4e4e4] mb-2">
+        {title}
+      </h3>
+      <p className="font-mono text-xs text-[#555] leading-relaxed">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Terminal line
+// ---------------------------------------------------------------------------
+function TerminalLine({
+  prompt,
+  command,
+  output,
+  outputColor = "#555",
+}: {
+  prompt: string;
+  command: string;
+  output?: string;
+  outputColor?: string;
+}) {
+  return (
+    <div className="font-mono text-xs leading-6">
+      <span className="text-[#555]">{prompt} </span>
+      <span className="text-[#e4e4e4]">{command}</span>
+      {output && <div style={{ color: outputColor }}>{output}</div>}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Landing page
+// ---------------------------------------------------------------------------
+export default function PreplitLanding() {
+  const cursorVisible = useCursorBlink();
+  const { ref: heroRef, revealed: heroRevealed } = useReveal(0.05);
+
+  return (
+    <div
+      className="min-h-screen"
+      style={{ backgroundColor: "#0a0a0a", color: "#e4e4e4" }}
+    >
+      {/* NAV */}
+      <nav
+        className="fixed top-0 w-full z-50 flex items-center justify-between px-6 md:px-10 h-12 border-b border-[#1a1a1a]"
+        style={{
+          backgroundColor: "rgba(10,10,10,0.92)",
+          backdropFilter: "blur(12px)",
+        }}
+        aria-label="Main navigation"
+      >
+        <Link
+          href="/"
+          className="font-mono text-sm font-bold text-[#e4e4e4] tracking-[0.12em] hover:text-[#4afa8a] transition-colors"
+        >
+          pre<span className="text-[#4afa8a]">plit</span>
+        </Link>
+        <div className="hidden md:flex items-center gap-8">
+          <a
+            href="#how-it-works"
+            className="font-mono text-xs text-[#555] hover:text-[#e4e4e4] transition-colors tracking-wider"
+          >
+            HOW IT WORKS
+          </a>
+          <a
+            href="#features"
+            className="font-mono text-xs text-[#555] hover:text-[#e4e4e4] transition-colors tracking-wider"
+          >
+            FEATURES
+          </a>
+          <a
+            href="#evaluation"
+            className="font-mono text-xs text-[#555] hover:text-[#e4e4e4] transition-colors tracking-wider"
+          >
+            EVALUATION
+          </a>
+        </div>
+        <div className="flex items-center gap-4">
           <ThemeToggle />
           <UserButton />
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-150 h-150 bg-indigo-500/10 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="container mx-auto px-6 relative z-10 max-w-6xl">
-          <div className="max-w-3xl">
-            <div className="font-mono text-emerald-600 dark:text-emerald-400 text-sm mb-4">
-              $ simulate_real_interview.sh
-            </div>
-
-            <h1 className="text-6xl font-bold leading-tight mb-6 text-zinc-900 dark:text-zinc-100">
-              Practice coding interviews the way they&apos;re{" "}
-              <span className="text-indigo-600 dark:text-indigo-400">
-                actually conducted
-              </span>
-            </h1>
-
-            <p className="text-xl text-zinc-600 dark:text-zinc-400 mb-10 leading-relaxed">
-              Preplit helps developers practice coding interviews the way
-              they&apos;re actually conducted — timed, conversational, and
-              unpredictable.
-            </p>
-
-            <a
-              href="/dashboard"
-              className="inline-block bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-500 text-white font-semibold px-8 py-4 rounded-lg text-lg transition-colors"
+      {/* HERO */}
+      <section
+        ref={heroRef}
+        className="min-h-screen flex items-center pt-12"
+        aria-labelledby="hero-heading"
+      >
+        <div className="w-full max-w-[1200px] mx-auto px-6 md:px-10 py-16 md:py-24">
+          <div className="grid md:grid-cols-[1fr_1fr] gap-12 xl:gap-20 items-center">
+            {/* Left */}
+            <div
+              style={{
+                opacity: heroRevealed ? 1 : 0,
+                transform: heroRevealed
+                  ? "translateX(0)"
+                  : "translateX(-20px)",
+                transition: "opacity 0.7s ease, transform 0.7s ease",
+              }}
             >
-              Start Simulating
-            </a>
-          </div>
-        </div>
-      </section>
+              <div
+                className="inline-flex items-center gap-2 font-mono text-[10px] text-[#555] border border-[#1e1e1e] px-3 py-1.5 mb-8 tracking-widest uppercase"
+                style={{ backgroundColor: "#0e0e0e" }}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4afa8a] shrink-0" />
+                AI Technical Interview Simulator
+              </div>
 
-      {/* Problem Section */}
-      <section className="py-32 bg-zinc-50 dark:bg-zinc-900">
-        <div className="container mx-auto px-6 max-w-6xl">
-          <h2 className="text-4xl font-bold text-center mb-4 text-zinc-900 dark:text-zinc-100">
-            You can solve LeetCode. You still fail interviews.
-          </h2>
-          <p className="text-center text-zinc-600 dark:text-zinc-400 text-lg max-w-2xl mx-auto mb-16">
-            Interview performance is a skill separate from problem-solving.
-          </p>
+              <h1
+                id="hero-heading"
+                className="font-mono text-4xl md:text-5xl xl:text-6xl leading-[1.1] mb-6 text-[#e4e4e4]"
+                style={{ textWrap: "balance" } as React.CSSProperties}
+              >
+                Practice interviews
+                <br />
+                the way they&apos;re
+                <br />
+                <span className="text-[#4afa8a] relative">
+                  actually run
+                  <span
+                    className="ml-1 inline-block w-[3px] h-[0.85em] align-middle"
+                    style={{
+                      backgroundColor: "#4afa8a",
+                      opacity: cursorVisible ? 1 : 0,
+                      verticalAlign: "middle",
+                    }}
+                    aria-hidden="true"
+                  />
+                </span>
+              </h1>
 
-          <div className="grid md:grid-cols-3 gap-8 mt-16">
-            <div className="bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 hover:border-red-400 dark:hover:border-red-500/50 rounded-xl p-8 transition-colors">
-              <h3 className="text-xl font-semibold mb-3 text-red-600 dark:text-red-400">
-                Time freezes you
-              </h3>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                You know the solution but panic under a 45-minute countdown.
-                Practicing untimed doesn&apos;t prepare you for real pressure.
+              <p className="font-mono text-sm text-[#666] leading-7 mb-10 max-w-[440px]">
+                Live voice interviews with an AI that talks, interrupts, adds
+                constraints, and evaluates you — exactly like a real technical
+                screen. Code in a real editor. Get structured feedback.
               </p>
-            </div>
 
-            <div className="bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 hover:border-red-400 dark:hover:border-red-500/50 rounded-xl p-8 transition-colors">
-              <h3 className="text-xl font-semibold mb-3 text-red-600 dark:text-red-400">
-                Requirements change mid-interview
-              </h3>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                Static problem statements don&apos;t teach you how to adapt when the
-                interviewer adds constraints or asks for optimization.
-              </p>
-            </div>
-
-            <div className="bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 hover:border-red-400 dark:hover:border-red-500/50 rounded-xl p-8 transition-colors">
-              <h3 className="text-xl font-semibold mb-3 text-red-600 dark:text-red-400">
-                Explaining your thinking is harder than coding
-              </h3>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                Interviewers judge how you communicate trade-offs and justify
-                decisions, not just whether your code passes tests.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Simulation Flow */}
-      <section className="py-32 bg-white dark:bg-zinc-950">
-        <div className="container mx-auto px-6 max-w-6xl">
-          <h2 className="text-4xl font-bold text-center mb-20 text-zinc-900 dark:text-zinc-100">
-            How an interview actually unfolds
-          </h2>
-
-          <div className="space-y-0">
-            {/* Step 1 */}
-            <div className="grid md:grid-cols-[80px_1fr] gap-6 pb-12 border-l-2 border-zinc-300 dark:border-zinc-700 relative">
-              <div className="flex items-start justify-center pt-1">
-                <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-lg -ml-6.25 text-white">
-                  1
-                </div>
+              <div className="flex flex-wrap gap-4 mb-12">
+                <Link
+                  href="/signup"
+                  className="font-mono text-sm font-bold px-6 py-3 text-[#0a0a0a] transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
+                  style={{ backgroundColor: "#4afa8a" }}
+                >
+                  Start practicing free
+                </Link>
+                <Link
+                  href="/login"
+                  className="font-mono text-sm border border-[#2a2a2a] px-6 py-3 text-[#888] hover:text-[#e4e4e4] hover:border-[#444] transition-all duration-200"
+                  style={{ backgroundColor: "#0e0e0e" }}
+                >
+                  Sign in
+                </Link>
               </div>
-              <div className="pb-8">
-                <div className="font-mono text-xs text-zinc-400 dark:text-zinc-500 mb-2">
-                  00:00 - 02:00
-                </div>
-                <h3 className="text-2xl font-semibold mb-3 text-zinc-900 dark:text-zinc-100">
-                  Initial problem reveal
-                </h3>
-                <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-                  You receive a partial prompt. Not the full problem statement.
-                  Just like a real interviewer would describe it verbally.
-                </p>
-                <div className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 font-mono text-sm text-zinc-700 dark:text-zinc-300">
-                  <span className="text-zinc-500">interviewer:</span> &quot;Design a
-                  function that finds duplicate entries in a dataset...&quot;
-                </div>
+
+              <div
+                className="border border-[#1a1a1a] p-4"
+                style={{ backgroundColor: "#0e0e0e" }}
+              >
+                <TerminalLine
+                  prompt="$"
+                  command="preplit start --type dsa --level medium"
+                />
+                <TerminalLine
+                  prompt=""
+                  command=""
+                  output="→ Connecting to AI interviewer..."
+                  outputColor="#555"
+                />
+                <TerminalLine
+                  prompt=""
+                  command=""
+                  output="→ Session started. Good luck."
+                  outputColor="#4afa8a"
+                />
               </div>
             </div>
 
-            {/* Step 2 */}
-            <div className="grid md:grid-cols-[80px_1fr] gap-6 pb-12 border-l-2 border-zinc-300 dark:border-zinc-700 relative">
-              <div className="flex items-start justify-center pt-1">
-                <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-lg -ml-6.25 text-white">
-                  2
-                </div>
-              </div>
-              <div className="pb-8">
-                <div className="font-mono text-xs text-zinc-400 dark:text-zinc-500 mb-2">
-                  02:00 - 08:00
-                </div>
-                <h3 className="text-2xl font-semibold mb-3 text-zinc-900 dark:text-zinc-100">
-                  Clarify requirements
-                </h3>
-                <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-                  Ask questions. Confirm constraints. This is where most
-                  candidates lose points by making wrong assumptions.
-                </p>
-                <div className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 font-mono text-sm">
-                  <div className="text-emerald-600 dark:text-emerald-400 mb-2">
-                    you: &quot;Should I optimize for space or time complexity?&quot;
-                  </div>
-                  <div className="text-zinc-600 dark:text-zinc-400">
-                    <span className="text-zinc-500">interviewer:</span> &quot;Time is
-                    more critical here.&quot;
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div className="grid md:grid-cols-[80px_1fr] gap-6 pb-12 border-l-2 border-zinc-300 dark:border-zinc-700 relative">
-              <div className="flex items-start justify-center pt-1">
-                <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-lg -ml-6.25 text-white">
-                  3
-                </div>
-              </div>
-              <div className="pb-8">
-                <div className="font-mono text-xs text-zinc-400 dark:text-zinc-500 mb-2">
-                  08:00 - 20:00
-                </div>
-                <h3 className="text-2xl font-semibold mb-3 text-zinc-900 dark:text-zinc-100">
-                  Start with brute force, explain your approach
-                </h3>
-                <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-                  You&apos;re expected to think aloud. Outline your strategy before
-                  coding. Show your thought process, not just your final answer.
-                </p>
-                <div className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 font-mono text-sm text-zinc-700 dark:text-zinc-300">
-                  <div className="text-amber-600 dark:text-amber-400 mb-1">
-                    {"// First approach: nested loops - O(n²)"}
-                  </div>
-                  <div className="text-zinc-500">
-                    {"// I'll start simple, then optimize..."}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 4 */}
-            <div className="grid md:grid-cols-[80px_1fr] gap-6 pb-12 border-l-2 border-zinc-300 dark:border-zinc-700 relative">
-              <div className="flex items-start justify-center pt-1">
-                <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-lg -ml-6.26 text-white">
-                  4
-                </div>
-              </div>
-              <div className="pb-8">
-                <div className="font-mono text-xs text-zinc-400 dark:text-zinc-500 mb-2">
-                  20:00 - 35:00
-                </div>
-                <h3 className="text-2xl font-semibold mb-3 text-zinc-900 dark:text-zinc-100">
-                  Handle follow-ups and optimization requests
-                </h3>
-                <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-                  Mid-solution, the interviewer adds constraints. Can you adapt
-                  without restarting? This tests composure under shifting
-                  requirements.
-                </p>
-                <div className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 font-mono text-sm">
-                  <div className="text-zinc-600 dark:text-zinc-400 mb-2">
-                    <span className="text-zinc-500">interviewer:</span> &quot;What if
-                    the dataset doesn&apos;t fit in memory?&quot;
-                  </div>
-                  <div className="text-emerald-600 dark:text-emerald-400">
-                    you: &quot;I&apos;d switch to a streaming approach with external
-                    sorting...&quot;
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 5 */}
-            <div className="grid md:grid-cols-[80px_1fr] gap-6 pb-0 border-l-2 border-transparent relative">
-              <div className="flex items-start justify-center pt-1">
-                <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-lg -ml-6.25 border-2 border-white dark:border-zinc-950 text-white">
-                  5
-                </div>
-              </div>
-              <div>
-                <div className="font-mono text-xs text-zinc-400 dark:text-zinc-500 mb-2">
-                  35:00 - 45:00
-                </div>
-                <h3 className="text-2xl font-semibold mb-3 text-zinc-900 dark:text-zinc-100">
-                  Edge cases and final refinement
-                </h3>
-                <p className="text-zinc-600 dark:text-zinc-400">
-                  The clock is running out. Can you identify edge cases, explain
-                  trade-offs, and write clean code simultaneously? This is the
-                  reality of interviews.
-                </p>
-              </div>
+            {/* Right: Editor SVG */}
+            <div
+              style={{
+                opacity: heroRevealed ? 1 : 0,
+                transform: heroRevealed ? "translateX(0)" : "translateX(20px)",
+                transition: "opacity 0.7s ease 0.15s, transform 0.7s ease 0.15s",
+              }}
+              aria-hidden="true"
+            >
+              <HeroEditorSVG />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Philosophy Section */}
-      <section className="py-32 bg-zinc-50 dark:bg-zinc-900">
-        <div className="container mx-auto px-6 max-w-6xl">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-4xl font-bold mb-12 text-zinc-900 dark:text-zinc-100">
-              Most platforms teach you to solve problems.
+      {/* STATS STRIP */}
+      <div
+        className="border-y border-[#1a1a1a]"
+        style={{ backgroundColor: "#0d0d0d" }}
+      >
+        <div className="max-w-[1200px] mx-auto px-6 md:px-10 py-10 grid grid-cols-2 md:grid-cols-4 gap-8">
+          <AnimatedStat value={5} suffix="+" label="Interview Types" />
+          <AnimatedStat value={45} suffix="min" label="Full Sessions" />
+          <AnimatedStat value={12} suffix="" label="Eval Dimensions" />
+          <AnimatedStat value={100} suffix="%" label="Voice-first AI" />
+        </div>
+      </div>
+
+      {/* HOW IT WORKS */}
+      <section
+        id="how-it-works"
+        className="py-24 md:py-32"
+        aria-labelledby="hiw-heading"
+      >
+        <div className="max-w-[1200px] mx-auto px-6 md:px-10">
+          <div className="mb-16">
+            <div className="font-mono text-[10px] text-[#4afa8a] tracking-widest uppercase mb-3">
+              Process
+            </div>
+            <h2
+              id="hiw-heading"
+              className="font-mono text-3xl md:text-4xl text-[#e4e4e4]"
+              style={{ textWrap: "balance" } as React.CSSProperties}
+            >
+              How a session unfolds
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-[1fr_380px] gap-16">
+            <div>
+              <Step
+                number={1}
+                icon={<TimerIcon className="w-full h-full" />}
+                title="Problem reveal"
+                description="You receive a partial problem — not the full statement. The AI describes it verbally, the way a human interviewer would."
+                timestamp="00:00 — 02:00"
+                detail={
+                  <div
+                    className="border border-[#1e1e1e] p-4 font-mono text-xs text-[#666]"
+                    style={{ backgroundColor: "#0e0e0e" }}
+                  >
+                    <span className="text-[#555]">interviewer: </span>
+                    <span className="text-[#888]">
+                      &ldquo;Design a function that finds duplicate entries in a
+                      large dataset. You have 45 minutes.&rdquo;
+                    </span>
+                  </div>
+                }
+              />
+              <Step
+                number={2}
+                icon={<VoiceIcon className="w-full h-full" />}
+                title="Clarify requirements"
+                description="Ask questions over voice. The AI responds with constraints. This is where most candidates silently lose points."
+                timestamp="02:00 — 08:00"
+                detail={
+                  <div
+                    className="border border-[#1e1e1e] p-4 font-mono text-xs space-y-2"
+                    style={{ backgroundColor: "#0e0e0e" }}
+                  >
+                    <div>
+                      <span className="text-[#4afa8a]">you: </span>
+                      <span className="text-[#888]">
+                        &ldquo;Should I optimize for space or time?&rdquo;
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[#555]">interviewer: </span>
+                      <span className="text-[#888]">
+                        &ldquo;Time is more critical here.&rdquo;
+                      </span>
+                    </div>
+                  </div>
+                }
+              />
+              <Step
+                number={3}
+                icon={<CodeIcon className="w-full h-full" />}
+                title="Code in a real editor"
+                description="Monaco editor — the same engine as VS Code. Think aloud, start with brute force, then optimize. The AI listens."
+                timestamp="08:00 — 28:00"
+                detail={
+                  <div
+                    className="border border-[#1e1e1e] p-4 font-mono text-xs"
+                    style={{ backgroundColor: "#0e0e0e" }}
+                  >
+                    <span className="text-[#7b7bff]">
+                      O(n&#178;) first &mdash; walk through this, then optimize
+                    </span>
+                    <br />
+                    <span className="text-[#555]">
+                      interviewer may ask about complexity at any moment
+                    </span>
+                  </div>
+                }
+              />
+              <Step
+                number={4}
+                icon={<SystemDesignIcon className="w-full h-full" />}
+                title="Handle follow-ups"
+                description="Mid-solution, constraints shift. The AI interrupts with follow-ups, edge cases, scale questions. You adapt."
+                timestamp="28:00 — 40:00"
+                detail={
+                  <div
+                    className="border border-[#1e1e1e] p-4 font-mono text-xs space-y-2"
+                    style={{ backgroundColor: "#0e0e0e" }}
+                  >
+                    <div>
+                      <span className="text-[#555]">interviewer: </span>
+                      <span className="text-[#888]">
+                        &ldquo;What if the dataset doesn&apos;t fit in
+                        memory?&rdquo;
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[#4afa8a]">you: </span>
+                      <span className="text-[#888]">
+                        &ldquo;External sort with merge passes, reduce I/O with
+                        buffering&mdash;&rdquo;
+                      </span>
+                    </div>
+                  </div>
+                }
+              />
+              <Step
+                number={5}
+                icon={<EvalIcon className="w-full h-full" />}
+                title="Structured evaluation"
+                description="Full scorecard across 5 dimensions. Not just getting it right — graded on communication, edge coverage, optimization decisions."
+                timestamp="40:00 — 45:00"
+                last
+                detail={
+                  <div className="font-mono text-xs text-[#4afa8a]">
+                    → Evaluation report ready in /dashboard
+                  </div>
+                }
+              />
+            </div>
+
+            {/* Conversation SVG */}
+            <div
+              className="hidden md:flex flex-col items-center justify-start pt-2"
+              aria-hidden="true"
+            >
+              <div className="sticky top-20">
+                <ConversationSVG />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FEATURES GRID */}
+      <section
+        id="features"
+        className="py-24 md:py-32 border-t border-[#1a1a1a]"
+        aria-labelledby="features-heading"
+        style={{ backgroundColor: "#0c0c0c" }}
+      >
+        <div className="max-w-[1200px] mx-auto px-6 md:px-10">
+          <div className="mb-16">
+            <div className="font-mono text-[10px] text-[#4afa8a] tracking-widest uppercase mb-3">
+              Features
+            </div>
+            <h2
+              id="features-heading"
+              className="font-mono text-3xl md:text-4xl text-[#e4e4e4]"
+              style={{ textWrap: "balance" } as React.CSSProperties}
+            >
+              Everything a real interview has
+            </h2>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-[#1a1a1a]">
+            <FeatureCard
+              icon={<VoiceIcon className="w-full h-full" />}
+              title="Live voice AI interviewer"
+              description="The AI speaks in real-time using ElevenLabs. It asks, interrupts, gives hints, and reacts to your code — not just chat."
+              accent="#7b7bff"
+              delay={0}
+            />
+            <FeatureCard
+              icon={<CodeIcon className="w-full h-full" />}
+              title="Monaco code editor"
+              description="Full VS Code engine in-browser. Syntax highlighting, autocomplete, multi-language support. Exactly what real interviews use."
+              accent="#4afa8a"
+              delay={60}
+            />
+            <FeatureCard
+              icon={<EvalIcon className="w-full h-full" />}
+              title="12-dimension evaluation"
+              description="Scored on problem solving, communication clarity, optimization decisions, edge case coverage, and code quality — not just correctness."
+              accent="#ff6b35"
+              delay={120}
+            />
+            <FeatureCard
+              icon={<DSAIcon className="w-full h-full" />}
+              title="DSA / LeetCode-style"
+              description="Arrays, graphs, DP, trees, sorting. Medium and hard problems. Timed. The AI will ask for complexity analysis mid-solution."
+              accent="#4afa8a"
+              delay={180}
+            />
+            <FeatureCard
+              icon={<SystemDesignIcon className="w-full h-full" />}
+              title="System design rounds"
+              description="Design Twitter, rate limiters, CDNs. The AI asks follow-up questions about scale, failure modes, and trade-offs."
+              accent="#7b7bff"
+              delay={240}
+            />
+            <FeatureCard
+              icon={<TimerIcon className="w-full h-full" />}
+              title="Real time pressure"
+              description="45-minute sessions with a live countdown. You learn to manage cognitive load when the clock actually matters."
+              accent="#ff6b35"
+              delay={300}
+            />
+          </div>
+
+          <div
+            className="mt-10 border border-[#1a1a1a] p-6"
+            style={{ backgroundColor: "#0e0e0e" }}
+          >
+            <div className="font-mono text-[10px] text-[#555] tracking-widest mb-4 uppercase">
+              Available interview types
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[
+                "DSA · Medium",
+                "DSA · Hard",
+                "JavaScript",
+                "TypeScript",
+                "Python",
+                "Backend / APIs",
+                "System Design",
+                "Behavioral (coming soon)",
+              ].map((type) => (
+                <span
+                  key={type}
+                  className="font-mono text-xs border border-[#2a2a2a] px-3 py-1 text-[#666]"
+                  style={{ backgroundColor: "#111111" }}
+                >
+                  {type}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* EVALUATION / SCORECARD */}
+      <section
+        id="evaluation"
+        className="py-24 md:py-32 border-t border-[#1a1a1a]"
+        aria-labelledby="eval-heading"
+      >
+        <div className="max-w-[1200px] mx-auto px-6 md:px-10">
+          <div className="grid md:grid-cols-[1fr_1fr] gap-16 items-center">
+            <div>
+              <div className="font-mono text-[10px] text-[#4afa8a] tracking-widest uppercase mb-3">
+                Evaluation
+              </div>
+              <h2
+                id="eval-heading"
+                className="font-mono text-3xl md:text-4xl text-[#e4e4e4] mb-6"
+                style={{ textWrap: "balance" } as React.CSSProperties}
+              >
+                Feedback that actually improves you
+              </h2>
+              <p className="font-mono text-sm text-[#666] leading-7 mb-8">
+                Every session produces a structured scorecard. Five axes, each
+                graded independently. You see exactly where you lost points and
+                why — not a generic &ldquo;good job&rdquo;.
+              </p>
+
+              <div className="space-y-4">
+                {[
+                  {
+                    dim: "Problem Solving",
+                    score: 88,
+                    color: "#4afa8a",
+                    note: "Strong initial decomposition, good pivot to optimal",
+                  },
+                  {
+                    dim: "Code Quality",
+                    score: 92,
+                    color: "#4afa8a",
+                    note: "Clean variable names, consistent style throughout",
+                  },
+                  {
+                    dim: "Edge Cases",
+                    score: 80,
+                    color: "#7b7bff",
+                    note: "Caught null input; missed empty array scenario",
+                  },
+                  {
+                    dim: "Communication",
+                    score: 74,
+                    color: "#7b7bff",
+                    note: "Good walk-through but delayed on time complexity",
+                  },
+                  {
+                    dim: "Optimization",
+                    score: 68,
+                    color: "#ff6b35",
+                    note: "Arrived at O(n) but needed AI hint to get there",
+                  },
+                ].map(({ dim, score, color, note }) => (
+                  <div key={dim}>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-mono text-xs text-[#888]">
+                        {dim}
+                      </span>
+                      <span
+                        className="font-mono text-xs tabular-nums"
+                        style={{ color }}
+                      >
+                        {score}
+                      </span>
+                    </div>
+                    <div className="w-full h-1 bg-[#1a1a1a] mb-1">
+                      <div
+                        className="h-full transition-all duration-700"
+                        style={{ width: `${score}%`, backgroundColor: color }}
+                      />
+                    </div>
+                    <div className="font-mono text-[10px] text-[#444]">
+                      {note}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div aria-hidden="true">
+              <ScorecardSVG className="w-full h-auto max-w-[420px] mx-auto" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* WHY PREPLIT */}
+      <section
+        className="py-24 md:py-32 border-t border-[#1a1a1a]"
+        aria-labelledby="philosophy-heading"
+        style={{ backgroundColor: "#0c0c0c" }}
+      >
+        <div className="max-w-[1200px] mx-auto px-6 md:px-10">
+          <div className="grid md:grid-cols-[1fr_1fr] gap-16">
+            <div>
+              <div className="font-mono text-[10px] text-[#4afa8a] tracking-widest uppercase mb-3">
+                Why Preplit
+              </div>
+              <h2
+                id="philosophy-heading"
+                className="font-mono text-3xl md:text-4xl text-[#e4e4e4] mb-8"
+                style={{ textWrap: "balance" } as React.CSSProperties}
+              >
+                You can solve LeetCode. You still fail interviews.
+              </h2>
+              <p className="font-mono text-sm text-[#666] leading-7">
+                Interview performance is a distinct skill from problem-solving.
+                Solving in silence builds one muscle. Performing under
+                observation, speaking your reasoning aloud, adapting to an
+                interviewer who just changed the constraints — that builds
+                another. Preplit trains the second one.
+              </p>
+            </div>
+            <div className="space-y-6">
+              {[
+                {
+                  signal: "01",
+                  problem: "Time freezes you",
+                  detail:
+                    "You know the solution but panic under a 45-minute countdown. Untimed practice doesn’t prepare you for real pressure.",
+                },
+                {
+                  signal: "02",
+                  problem: "Requirements shift mid-interview",
+                  detail:
+                    "Static problems can’t teach adaptation. Real interviewers add constraints, ask for optimization, change scope.",
+                },
+                {
+                  signal: "03",
+                  problem: "Explaining is harder than coding",
+                  detail:
+                    "Interviewers judge how you reason and communicate trade‑offs — not just whether your code is correct.",
+                },
+              ].map(({ signal, problem, detail }) => (
+                <div
+                  key={signal}
+                  className="flex gap-6 border-l border-[#2a2a2a] pl-6"
+                >
+                  <div className="shrink-0">
+                    <span className="font-mono text-[10px] text-[#333] tracking-widest">
+                      {signal}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-mono text-sm text-[#e4e4e4] mb-1">
+                      {problem}
+                    </h3>
+                    <p className="font-mono text-xs text-[#555] leading-relaxed">
+                      {detail}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* WHO IT IS FOR */}
+      <section
+        className="py-24 md:py-32 border-t border-[#1a1a1a]"
+        aria-labelledby="audience-heading"
+      >
+        <div className="max-w-[1200px] mx-auto px-6 md:px-10">
+          <div className="mb-16">
+            <div className="font-mono text-[10px] text-[#4afa8a] tracking-widest uppercase mb-3">
+              Audience
+            </div>
+            <h2
+              id="audience-heading"
+              className="font-mono text-3xl md:text-4xl text-[#e4e4e4]"
+            >
+              Built for developers who know DSA
+            </h2>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-[#1a1a1a]">
+            {[
+              {
+                label: "Placement prep",
+                detail:
+                  "Final-year CS students preparing for product-company placements who already know the algorithms.",
+              },
+              {
+                label: "Role transitions",
+                detail:
+                  "Developers with 1–5 years experience who want to move to a bigger company or higher level.",
+              },
+              {
+                label: "Self-taught engineers",
+                detail:
+                  "Strong coders who lack the structured interview communication practice that CS grads get in class.",
+              },
+              {
+                label: "Post-rejection",
+                detail:
+                  "Anyone rejected despite “getting the logic right” — who knows the gap is in performance, not knowledge.",
+              },
+            ].map(({ label, detail }) => (
+              <div
+                key={label}
+                className="p-6"
+                style={{ backgroundColor: "#0e0e0e" }}
+              >
+                <div className="font-mono text-[10px] text-[#4afa8a] tracking-widest uppercase mb-3">
+                  {label}
+                </div>
+                <p className="font-mono text-xs text-[#555] leading-relaxed">
+                  {detail}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <section
+        className="py-24 md:py-32 border-t border-[#1a1a1a]"
+        aria-labelledby="cta-heading"
+        style={{ backgroundColor: "#0c0c0c" }}
+      >
+        <div className="max-w-[1200px] mx-auto px-6 md:px-10">
+          <div className="max-w-[640px]">
+            <div className="font-mono text-[10px] text-[#4afa8a] tracking-widest uppercase mb-4">
+              Get started
+            </div>
+            <h2
+              id="cta-heading"
+              className="font-mono text-3xl md:text-5xl text-[#e4e4e4] mb-6"
+              style={{ textWrap: "balance" } as React.CSSProperties}
+            >
+              Your first interview is
               <br />
-              <span className="text-indigo-600 dark:text-indigo-400">
-                Preplit teaches you to perform under observation.
-              </span>
+              <span className="text-[#4afa8a]">waiting right now</span>
             </h2>
-
-            <div className="space-y-8">
-              <div className="border-l-4 border-indigo-600 pl-6">
-                <h3 className="text-xl font-semibold mb-2 text-zinc-900 dark:text-zinc-100">
-                  Problems aren&apos;t static. Neither are interviews.
-                </h3>
-                <p className="text-zinc-600 dark:text-zinc-400">
-                  Requirements evolve as you code. Preplit mirrors this by
-                  gradually revealing constraints, just like real interviewers
-                  do.
-                </p>
-              </div>
-
-              <div className="border-l-4 border-indigo-600 pl-6">
-                <h3 className="text-xl font-semibold mb-2 text-zinc-900 dark:text-zinc-100">
-                  Time pressure isn&apos;t optional.
-                </h3>
-                <p className="text-zinc-600 dark:text-zinc-400">
-                  Every session is timed. You learn when to optimize, when to
-                  move on, and how to manage cognitive load when the clock
-                  matters.
-                </p>
-              </div>
-
-              <div className="border-l-4 border-indigo-600 pl-6">
-                <h3 className="text-xl font-semibold mb-2 text-zinc-900 dark:text-zinc-100">
-                  Communication is evaluated, not just code.
-                </h3>
-                <p className="text-zinc-600 dark:text-zinc-400">
-                  Feedback covers how you explained your reasoning, justified
-                  trade-offs, and responded to hints. Like an actual interviewer
-                  would assess you.
-                </p>
-              </div>
-
-              <div className="border-l-4 border-indigo-600 pl-6">
-                <h3 className="text-xl font-semibold mb-2 text-zinc-900 dark:text-zinc-100">
-                  Think like a hireable engineer.
-                </h3>
-                <p className="text-zinc-600 dark:text-zinc-400">
-                  Solving faster doesn&apos;t make you hireable. Structured thinking,
-                  adaptability, and clear communication do.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Target Audience */}
-      <section className="py-32 bg-white dark:bg-zinc-950">
-        <div className="container mx-auto px-6 max-w-6xl">
-          <h2 className="text-4xl font-bold text-center mb-20 text-zinc-900 dark:text-zinc-100">
-            Built for developers who already know DSA
-          </h2>
-
-          <div className="grid md:grid-cols-2 gap-12 max-w-4xl mx-auto">
-            <div>
-              <h3 className="text-2xl font-semibold mb-6 text-zinc-900 dark:text-zinc-100">
-                You&apos;re ready if you:
-              </h3>
-              <ul className="space-y-4 text-zinc-600 dark:text-zinc-400">
-                <li className="flex items-start gap-3">
-                  <span className="text-emerald-600 dark:text-emerald-400 mt-1">
-                    ✓
-                  </span>
-                  <span>
-                    Can solve medium problems on LeetCode but struggle in live
-                    settings
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-emerald-600 dark:text-emerald-400 mt-1">
-                    ✓
-                  </span>
-                  <span>
-                    Know the concepts but freeze when explaining them verbally
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-emerald-600 dark:text-emerald-400 mt-1">
-                    ✓
-                  </span>
-                  <span>
-                    Are preparing for product-based companies (FAANG, startups,
-                    top tech firms)
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-emerald-600 dark:text-emerald-400 mt-1">
-                    ✓
-                  </span>
-                  <span>
-                    Have been rejected despite &quot;getting the logic right&quot;
-                  </span>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-2xl font-semibold mb-6 text-zinc-900 dark:text-zinc-100">
-                Who this is for:
-              </h3>
-              <ul className="space-y-4 text-zinc-600 dark:text-zinc-400">
-                <li className="flex items-start gap-3">
-                  <span className="text-indigo-600 dark:text-indigo-400 mt-1">
-                    →
-                  </span>
-                  <span>Final-year CS students preparing for placements</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-indigo-600 dark:text-indigo-400 mt-1">
-                    →
-                  </span>
-                  <span>
-                    Developers with 1–5 years experience switching roles
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-indigo-600 dark:text-indigo-400 mt-1">
-                    →
-                  </span>
-                  <span>
-                    Self-taught engineers who need interview communication
-                    practice
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-indigo-600 dark:text-indigo-400 mt-1">
-                    →
-                  </span>
-                  <span>
-                    Anyone frustrated by the gap between practice and real
-                    interviews
-                  </span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Outcome Section */}
-      <section className="py-32 bg-zinc-50 dark:bg-zinc-900">
-        <div className="container mx-auto px-6 max-w-6xl">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-4xl font-bold mb-8 text-zinc-900 dark:text-zinc-100">
-              After consistent practice, you&apos;ll stop treating interviews like
-              exams
-            </h2>
-            <p className="text-xl text-zinc-600 dark:text-zinc-400 mb-12">
-              You&apos;ll recognize interview patterns. You&apos;ll know when to clarify,
-              when to optimize, and how to recover from mistakes. You&apos;ll think
-              and communicate like someone who&apos;s done this before.
+            <p className="font-mono text-sm text-[#666] leading-7 mb-10">
+              No warmup. No tutorial. An AI interviewer, a real editor, 45
+              minutes. That&apos;s the only way to know if you&apos;re ready.
             </p>
-
-            <div className="bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl p-8 text-left mb-12">
-              <div className="font-mono text-sm text-zinc-500 dark:text-zinc-400 mb-4">
-                Expected outcomes after 20+ simulations:
-              </div>
-              <ul className="space-y-3 text-zinc-700 dark:text-zinc-300">
-                <li className="flex items-start gap-3">
-                  <span className="text-indigo-600 dark:text-indigo-400 font-bold">
-                    •
-                  </span>
-                  <span>
-                    Natural articulation of thought process without rehearsed
-                    scripts
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-indigo-600 dark:text-indigo-400 font-bold">
-                    •
-                  </span>
-                  <span>
-                    Calm responses to mid-interview constraint changes
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-indigo-600 dark:text-indigo-400 font-bold">
-                    •
-                  </span>
-                  <span>
-                    Awareness of when to optimize vs when to move forward
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-indigo-600 dark:text-indigo-400 font-bold">
-                    •
-                  </span>
-                  <span>
-                    Confidence in handling ambiguity and incomplete information
-                  </span>
-                </li>
-              </ul>
+            <div className="flex flex-wrap gap-4 mb-8">
+              <Link
+                href="/signup"
+                className="font-mono text-sm font-bold px-8 py-4 text-[#0a0a0a] transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
+                style={{ backgroundColor: "#4afa8a" }}
+              >
+                Start your first session
+              </Link>
+              <Link
+                href="/login"
+                className="font-mono text-sm border border-[#2a2a2a] px-8 py-4 text-[#888] hover:text-[#e4e4e4] hover:border-[#444] transition-all duration-200"
+                style={{ backgroundColor: "#0e0e0e" }}
+              >
+                Sign in
+              </Link>
             </div>
-
-            <a
-              href="#"
-              className="inline-block bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-500 text-white font-semibold px-8 py-4 rounded-lg text-lg transition-colors"
+            <div
+              className="border border-[#1a1a1a] p-4 inline-block"
+              style={{ backgroundColor: "#0e0e0e" }}
             >
-              Start Your First Simulation
-            </a>
-
-            <p className="text-sm text-zinc-500 mt-6">
-              No signup required to try. Experience the difference immediately.
-            </p>
+              <span className="font-mono text-xs text-[#555]">$ </span>
+              <span className="font-mono text-xs text-[#e4e4e4]">
+                preplit start --difficulty hard --type system-design
+              </span>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800">
-        <div className="container mx-auto px-6 max-w-6xl">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="font-mono text-indigo-600 dark:text-indigo-400 text-xl font-bold">
-              preplit
+      {/* FOOTER */}
+      <footer
+        className="border-t border-[#1a1a1a] py-10"
+        style={{ backgroundColor: "#0a0a0a" }}
+        role="contentinfo"
+      >
+        <div className="max-w-[1200px] mx-auto px-6 md:px-10">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+              <div className="font-mono text-sm font-bold text-[#e4e4e4] mb-1 tracking-[0.12em]">
+                pre<span className="text-[#4afa8a]">plit</span>
+              </div>
+              <div className="font-mono text-xs text-[#444]">
+                AI technical interview simulator
+              </div>
             </div>
-            <div className="text-zinc-500 text-sm">
+            <div className="flex flex-col md:flex-row gap-4 md:gap-8">
+              <Link
+                href="/signup"
+                className="font-mono text-xs text-[#555] hover:text-[#e4e4e4] transition-colors"
+              >
+                Sign up
+              </Link>
+              <Link
+                href="/login"
+                className="font-mono text-xs text-[#555] hover:text-[#e4e4e4] transition-colors"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/dashboard"
+                className="font-mono text-xs text-[#555] hover:text-[#e4e4e4] transition-colors"
+              >
+                Dashboard
+              </Link>
+            </div>
+            <div className="font-mono text-[10px] text-[#333]">
               Built by engineers who&apos;ve given interviews, for engineers
               preparing for them.
             </div>
