@@ -1,20 +1,19 @@
-import React, { useState } from "react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { ExitIcon } from "../svgs/Exit";
-import { authClient } from "@/lib/auth-client";
+import { motion } from "motion/react";
+import { Link } from "next-view-transitions";
 import { useRouter, useSearchParams } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
+import { LogoMark } from "@/components/brand/Logo";
 import { DashboardSection } from "@/app/(dashboard)/dashboard/page";
 import {
+  Sidebar,
+  SidebarBody,
+  SidebarLink,
+  useSidebar,
+  type SidebarLinkData,
+} from "./sidebar";
+import { ExitIcon } from "../svgs/Exit";
+import {
   AiIcon,
-  CollapseLeftIcon,
-  CollapseRightIcon,
   InsightsIcon,
   OverviewIcon,
   UserIcon,
@@ -46,7 +45,7 @@ export default function DashboardSidebar({
 
     router.push(`/dashboard?${params.toString()}`);
   };
-  const [isOpen, setIsOpen] = useState(true);
+
   const handleLogout = async () => {
     await authClient.signOut({
       fetchOptions: {
@@ -57,99 +56,92 @@ export default function DashboardSidebar({
     });
   };
 
-  const topOptions: {
-    id: DashboardSection;
-    label: string;
-    icon: React.ComponentType<{ className?: string }>;
-  }[] = [
-    { id: "overview", label: "Overview", icon: OverviewIcon },
-    { id: "interviews", label: "Interviews", icon: AiIcon },
-    { id: "insights", label: "Insights", icon: InsightsIcon },
+  const topOptions: SidebarLinkData[] = [
+    {
+      label: "Overview",
+      icon: <OverviewIcon className="size-5" />,
+      onClick: () => changeTab("overview"),
+      active: resolvedTab === "overview",
+    },
+    {
+      label: "Interviews",
+      icon: <AiIcon className="size-5" />,
+      onClick: () => changeTab("interviews"),
+      active: resolvedTab === "interviews",
+    },
+    {
+      label: "Insights",
+      icon: <InsightsIcon className="size-5" />,
+      onClick: () => changeTab("insights"),
+      active: resolvedTab === "insights",
+    },
   ];
 
-  const bottomOptions: {
-    id: DashboardSection;
-    label: string;
-    icon: React.ComponentType<{ className?: string }>;
-  }[] = [
-    { id: "profile", label: "Profile", icon: UserIcon },
-    { id: "settings", label: "Settings", icon: SettingsIcon },
+  const bottomOptions: SidebarLinkData[] = [
+    {
+      label: "Profile",
+      icon: <UserIcon className="size-5" />,
+      onClick: () => changeTab("profile"),
+      active: resolvedTab === "profile",
+    },
+    {
+      label: "Settings",
+      icon: <SettingsIcon className="size-5" />,
+      onClick: () => changeTab("settings"),
+      active: resolvedTab === "settings",
+    },
   ];
 
-  const SidebarItem = ({ option }: { option: (typeof topOptions)[0] }) => {
-    const content = (
-      <Button
-        variant={option.id === resolvedTab ? "secondary" : "ghost"}
-        className={cn(
-          "w-full justify-start gap-4 px-3 py-6 transition-all duration-300 hover:bg-accent group",
-          !isOpen && "justify-center px-0"
-        )}
-        onClick={() => changeTab(option.id)}
-      >
-        <option.icon className="size-5 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
-        {isOpen && (
-          <span className="text-sm font-medium animate-in fade-in slide-in-from-left-2 duration-300">
-            {option.label}
-          </span>
-        )}
-      </Button>
-    );
-
-    if (isOpen) return content;
-
-    return (
-      <Tooltip delayDuration={0}>
-        <TooltipTrigger asChild>{content}</TooltipTrigger>
-        <TooltipContent side="right" sideOffset={10} className="font-medium">
-          {option.label}
-        </TooltipContent>
-      </Tooltip>
-    );
+  const logoutOption: SidebarLinkData = {
+    label: "Logout",
+    icon: <ExitIcon className="size-5" />,
+    onClick: handleLogout,
   };
 
   return (
-    <TooltipProvider delayDuration={0}>
-      <aside
-        className={cn(
-          "relative flex flex-col border-r bg-background transition-all duration-300 ease-in-out",
-          isOpen ? "w-64" : "w-20"
-        )}
-      >
-        {/* Toggle Button */}
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setIsOpen(!isOpen)}
-          className="absolute -right-3 top-7 h-6 w-6 rounded-full border bg-white dark:bg-zinc-950 shadow-sm hover:bg-zinc-950/10 hover:dark:bg-white/10  z-40"
-        >
-          {isOpen ? (
-            <CollapseLeftIcon className="h-4 w-4" />
-          ) : (
-            <CollapseRightIcon className="h-4 w-4" />
-          )}
-        </Button>
-
-        {/* Navigation */}
-        <div className="flex flex-1 flex-col gap-4 p-4">
-          <nav className="flex flex-1 flex-col gap-2">
+    <Sidebar>
+      <SidebarBody className="justify-between gap-6 py-5">
+        <div className="flex flex-1 flex-col gap-8 overflow-x-hidden overflow-y-auto px-3">
+          <SidebarBrand />
+          <nav className="flex flex-col gap-1">
             {topOptions.map((option) => (
-              <SidebarItem key={option.id} option={option} />
+              <SidebarLink key={option.label} link={option} />
             ))}
           </nav>
-
-          <nav className="flex flex-col gap-2 border-t pt-4">
-            {bottomOptions.map((option) => (
-              <SidebarItem key={option.id} option={option} />
-            ))}
-          </nav>
-          {isOpen && (
-            <Button variant="outline" onClick={handleLogout}>
-              <ExitIcon />
-              Logout
-            </Button>
-          )}
         </div>
-      </aside>
-    </TooltipProvider>
+
+        <div className="flex flex-col gap-1 border-t border-border px-3 pt-4">
+          {bottomOptions.map((option) => (
+            <SidebarLink key={option.label} link={option} />
+          ))}
+          <SidebarLink link={logoutOption} />
+        </div>
+      </SidebarBody>
+    </Sidebar>
+  );
+}
+
+function SidebarBrand() {
+  const { open, mobileOpen, reduceMotion } = useSidebar();
+  const showWordmark = open || mobileOpen;
+
+  return (
+    <Link href="/" className="flex items-center gap-2.5 px-1">
+      <LogoMark className="h-6 w-6 shrink-0 text-zinc-100" />
+      <motion.span
+        animate={{
+          display: reduceMotion
+            ? "inline-block"
+            : showWordmark
+              ? "inline-block"
+              : "none",
+          opacity: reduceMotion ? 1 : showWordmark ? 1 : 0,
+        }}
+        transition={reduceMotion ? { duration: 0 } : { duration: 0.15 }}
+        className="whitespace-nowrap text-base font-bold tracking-tight text-foreground"
+      >
+        preplit<span className="text-[#E8A33D]">.</span>
+      </motion.span>
+    </Link>
   );
 }
