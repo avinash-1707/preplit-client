@@ -9,8 +9,17 @@ import { toast } from "sonner";
 import { SignUpInput, signupSchema } from "@/schema/signupSchema";
 import { authClient } from "@/lib/auth-client";
 import { Link } from "next-view-transitions";
-import GoogleIcon from "@/components/svgs/GoogleIcon";
-import GithubIcon from "@/components/svgs/GithubIcon";
+import { AuthShell, AuthHeader } from "@/components/auth/AuthShell";
+import { FormField } from "@/components/auth/FormField";
+import { AuthDivider } from "@/components/auth/AuthDivider";
+import { SocialButtons } from "@/components/auth/SocialButtons";
+import { ButtonSpinner } from "@/components/auth/ButtonSpinner";
+import {
+  authInputClass,
+  authOutlineButtonClass,
+  authPrimaryButtonClass,
+  authLinkClass,
+} from "@/components/auth/styles";
 
 function SignUpPage() {
   const [isVerificationSent, setIsVerificationSent] = useState(false);
@@ -62,349 +71,171 @@ function SignUpPage() {
   // Verification success view
   if (isVerificationSent) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="bg-zinc-800 rounded-lg shadow-2xl p-8 space-y-6 border border-zinc-700">
-            {/* Success Icon */}
-            <div className="text-center space-y-4">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-900/30 mb-2 border border-green-700">
-                <svg
-                  className="w-8 h-8 text-green-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76"
-                  />
-                </svg>
-              </div>
+      <AuthShell asideCaption="One click and you're in. Then straight to practicing.">
+        <AuthHeader
+          eyebrow="Almost there"
+          title="Check your email"
+          subtitle="We sent a verification link to"
+        />
 
-              <h1 className="text-2xl font-semibold text-zinc-100">
-                Verify Your Email
-              </h1>
-
-              <div className="space-y-3 text-zinc-300">
-                <p className="text-base">We&apos;ve sent a verification link to:</p>
-                <p className="text-lg font-medium text-zinc-100 bg-zinc-700/50 py-2 px-4 rounded border border-zinc-600">
-                  {userEmail}
-                </p>
-                <p className="text-sm text-zinc-400 leading-relaxed">
-                  Please check your inbox and click the verification link to
-                  activate your account. The link will expire in 24 hours.
-                </p>
-              </div>
-
-              {/* Additional Info */}
-              <div className="pt-4 space-y-3">
-                <div className="bg-zinc-700/30 border border-zinc-600 rounded-lg p-4 text-left">
-                  <p className="text-sm text-zinc-400">
-                    <span className="font-medium text-zinc-300">
-                      Didn&apos;t receive the email?
-                    </span>
-                    <br />
-                    Check your spam folder or wait a few minutes for the email
-                    to arrive.
-                  </p>
-                </div>
-
-                <Button
-                  onClick={() => setIsVerificationSent(false)}
-                  variant="outline"
-                  className="w-full h-10 bg-zinc-700 border-zinc-600 text-zinc-200 hover:bg-zinc-600 hover:border-zinc-500 transition-colors"
-                >
-                  Back to Sign Up
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <p className="text-center text-sm text-zinc-500 mt-6">
-            Need help?{" "}
-            <a href="/support" className="text-zinc-400 hover:text-zinc-300">
-              Contact Support
-            </a>
+        <div
+          className="landing-rise -mt-4 mb-6 text-center"
+          style={{ animationDelay: "90ms" }}
+        >
+          <p className="truncate text-sm font-medium text-zinc-100">
+            {userEmail}
           </p>
         </div>
-      </div>
+
+        <div
+          className="landing-rise space-y-4"
+          style={{ animationDelay: "150ms" }}
+        >
+          <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 text-sm text-zinc-500">
+            Didn&apos;t get it? Check your spam folder, or wait a minute and
+            try again.
+          </div>
+
+          <Button
+            onClick={() => setIsVerificationSent(false)}
+            variant="outline"
+            className={authOutlineButtonClass}
+          >
+            Use a different email
+          </Button>
+        </div>
+
+        <p
+          className="landing-rise mt-8 text-center text-sm text-zinc-500"
+          style={{ animationDelay: "210ms" }}
+        >
+          Need help?{" "}
+          <Link href="/support" className={authLinkClass}>
+            Contact support
+          </Link>
+        </p>
+      </AuthShell>
     );
   }
 
-  // Original signup form view
+  // Sign up form
   return (
-    <div className="min-h-screen bg-black flex flex-col">
-      {/* Navigation */}
-      <nav className="w-full flex justify-between items-center py-5 px-6 md:px-12 border-b border-zinc-800">
-        <Link href="/" className="text-2xl font-bold text-zinc-100">
-          preplit
-        </Link>
-      </nav>
+    <AuthShell asideCaption="A real mock interview, out loud. It listens, pushes back, and scores you at the end.">
+      <AuthHeader
+        eyebrow="Get started"
+        title="Create your account"
+        subtitle="Start practicing in minutes."
+      />
 
-      {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          {/* Card */}
-          <div className="bg-zinc-800 rounded-lg shadow-2xl p-8 space-y-6 border border-zinc-700">
-            {/* Header */}
-            <div className="text-center space-y-2">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-zinc-700 mb-3 border border-zinc-600">
-                <svg
-                  className="w-7 h-7 text-zinc-300"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              </div>
-              <h1 className="text-2xl font-semibold text-zinc-100">
-                Create Account
-              </h1>
-              <p className="text-zinc-400 text-sm">Sign up to get started</p>
-            </div>
+      <div className="landing-rise" style={{ animationDelay: "90ms" }}>
+        <SocialButtons
+          onGoogleClick={handleGoogleLogin}
+          onGithubClick={handleGithubLogin}
+        />
 
-            {/* Social Login */}
-            <div className="space-y-3">
-              <Button
-                onClick={handleGoogleLogin}
-                type="button"
-                variant="outline"
-                className="w-full h-11 bg-zinc-700 border-zinc-600 text-zinc-200 hover:bg-zinc-600 hover:border-zinc-500 transition-colors"
+        <AuthDivider label="or with email" />
+
+        <div className="space-y-4">
+          <FormField label="Name" htmlFor="name" error={errors.name?.message}>
+            <Input
+              {...register("name")}
+              id="name"
+              placeholder="Jane Doe"
+              className={authInputClass}
+            />
+          </FormField>
+
+          <FormField
+            label="Email"
+            htmlFor="email"
+            error={errors.email?.message}
+          >
+            <Input
+              {...register("email")}
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              className={authInputClass}
+            />
+          </FormField>
+
+          <FormField
+            label="Password"
+            htmlFor="password"
+            error={errors.password?.message}
+          >
+            <Input
+              {...register("password")}
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              className={authInputClass}
+            />
+          </FormField>
+
+          <div className="space-y-1.5">
+            <div className="flex items-start gap-2.5">
+              <input
+                {...register("termsAccepted")}
+                id="termsAccepted"
+                type="checkbox"
+                className="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded border-zinc-700 bg-zinc-950 accent-[#E8A33D] focus-visible:ring-2 focus-visible:ring-[#E8A33D]/40"
+              />
+              <label
+                htmlFor="termsAccepted"
+                className="cursor-pointer text-sm text-zinc-500"
               >
-                <GoogleIcon />
-                Continue with Google
-              </Button>
-
-              <Button
-                onClick={handleGithubLogin}
-                type="button"
-                variant="outline"
-                className="w-full h-11 bg-zinc-700 border-zinc-600 text-zinc-200 hover:bg-zinc-600 hover:border-zinc-500 transition-colors"
-              >
-                <GithubIcon />
-                Continue with GitHub
-              </Button>
-            </div>
-
-            {/* Divider */}
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-zinc-600"></div>
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="px-3 bg-zinc-800 text-zinc-500 font-medium">
-                  or sign up with email
-                </span>
-              </div>
-            </div>
-
-            {/* Sign Up Form */}
-            <div className="space-y-4">
-              {/* Name Field */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-zinc-300"
+                I agree to the{" "}
+                <Link
+                  href="/terms"
+                  className="font-medium text-zinc-300 underline decoration-zinc-700 underline-offset-4 transition-colors duration-200 hover:text-zinc-100 hover:decoration-[#E8A33D]"
                 >
-                  Full Name
-                </label>
-                <Input
-                  {...register("name")}
-                  id="name"
-                  placeholder="John Doe"
-                  className="h-10 bg-zinc-700 border-zinc-600 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500 focus:ring-zinc-500"
-                />
-                {errors.name && (
-                  <p className="text-sm text-red-400 flex items-center gap-1">
-                    <svg
-                      className="w-4 h-4"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    {errors.name.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Email Field */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-zinc-300"
+                  Terms
+                </Link>{" "}
+                and{" "}
+                <Link
+                  href="/privacy"
+                  className="font-medium text-zinc-300 underline decoration-zinc-700 underline-offset-4 transition-colors duration-200 hover:text-zinc-100 hover:decoration-[#E8A33D]"
                 >
-                  Email Address
-                </label>
-                <Input
-                  {...register("email")}
-                  id="email"
-                  type="email"
-                  placeholder="john@example.com"
-                  className="h-10 bg-zinc-700 border-zinc-600 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500 focus:ring-zinc-500"
-                />
-                {errors.email && (
-                  <p className="text-sm text-red-400 flex items-center gap-1">
-                    <svg
-                      className="w-4 h-4"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    {errors.email.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Password Field */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-zinc-300"
-                >
-                  Password
-                </label>
-                <Input
-                  {...register("password")}
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  className="h-10 bg-zinc-700 border-zinc-600 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500 focus:ring-zinc-500"
-                />
-                {errors.password && (
-                  <p className="text-sm text-red-400 flex items-center gap-1">
-                    <svg
-                      className="w-4 h-4"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Terms and Conditions Checkbox */}
-              <div className="space-y-2">
-                <div className="flex items-start gap-3">
-                  <input
-                    {...register("termsAccepted")}
-                    id="termsAccepted"
-                    type="checkbox"
-                    className="mt-1 w-4 h-4 text-zinc-500 bg-zinc-700 border-zinc-600 rounded focus:ring-zinc-500 cursor-pointer"
-                  />
-                  <label
-                    htmlFor="termsAccepted"
-                    className="text-sm text-zinc-400 cursor-pointer"
-                  >
-                    I agree to the{" "}
-                    <a
-                      href="/terms"
-                      className="text-zinc-300 hover:text-zinc-200 font-medium underline"
-                    >
-                      Terms and Conditions
-                    </a>{" "}
-                    and{" "}
-                    <a
-                      href="/privacy"
-                      className="text-zinc-300 hover:text-zinc-200 font-medium underline"
-                    >
-                      Privacy Policy
-                    </a>
-                  </label>
-                </div>
-                {errors.termsAccepted && (
-                  <p className="text-sm text-red-400 flex items-center gap-1">
-                    <svg
-                      className="w-4 h-4"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    {errors.termsAccepted.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Submit Button */}
-              <Button
-                onClick={handleFormSubmit}
-                disabled={isSubmitting}
-                className="w-full h-10 bg-zinc-600 hover:bg-zinc-500 text-zinc-100 font-medium shadow-lg transition-all border border-zinc-500"
-              >
-                {isSubmitting ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                        fill="none"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                    Creating account...
-                  </span>
-                ) : (
-                  "Create Account"
-                )}
-              </Button>
+                  Privacy Policy
+                </Link>
+              </label>
             </div>
-
-            {/* Sign In Link */}
-            <p className="text-center text-sm text-zinc-400">
-              Already have an account?{" "}
-              <a
-                href="/login"
-                className="text-zinc-300 hover:text-zinc-200 font-medium"
-              >
-                Log in
-              </a>
-            </p>
+            {errors.termsAccepted && (
+              <p className="flex items-center gap-1.5 text-xs text-red-400/90">
+                <span className="h-1 w-1 shrink-0 rounded-full bg-red-400" />
+                {errors.termsAccepted.message}
+              </p>
+            )}
           </div>
 
-          {/* Footer */}
-          <p className="text-center text-sm text-zinc-500 mt-6">
-            By signing up, you agree to our Terms of Service and Privacy Policy
-          </p>
+          <Button
+            onClick={handleFormSubmit}
+            disabled={isSubmitting}
+            className={authPrimaryButtonClass}
+          >
+            {isSubmitting ? (
+              <span className="flex items-center gap-2">
+                <ButtonSpinner />
+                Creating account...
+              </span>
+            ) : (
+              "Create account"
+            )}
+          </Button>
         </div>
       </div>
-    </div>
+
+      <p
+        className="landing-rise mt-8 text-center text-sm text-zinc-500"
+        style={{ animationDelay: "160ms" }}
+      >
+        Already have an account?{" "}
+        <Link href="/login" className={authLinkClass}>
+          Log in
+        </Link>
+      </p>
+    </AuthShell>
   );
 }
 
