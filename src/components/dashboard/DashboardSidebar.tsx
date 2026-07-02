@@ -2,7 +2,7 @@ import { motion } from "motion/react";
 import { Link } from "next-view-transitions";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { LogoMark } from "@/components/brand/Logo";
+import { LogoTile } from "@/components/brand/Logo";
 import { DashboardSection } from "@/app/(dashboard)/dashboard/page";
 import {
   Sidebar,
@@ -127,7 +127,7 @@ function SidebarBrand() {
 
   return (
     <Link href="/" className="flex items-center gap-2.5 px-1">
-      <LogoMark className="h-6 w-6 shrink-0 text-zinc-100" />
+      <LogoTile className="h-6 w-6 shrink-0" />
       <motion.span
         animate={{
           display: reduceMotion
